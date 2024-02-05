@@ -101,9 +101,9 @@ prep_uni_data <- function(db, db_cohort, trait, response_type, same_sex = TRUE) 
       mutate(X1 = mxFactor(X1, levels = sort(unique(X1))),
              X2 = mxFactor(X2, levels = sort(unique(X2))))
 
-    class <- "prep.uni.bin"
+    class <- c("prep.uni.bin", "prep.uni")
 
-  } else class <- "prep.uni.num"
+  } else class <- c("prep.uni.num", "prep.uni")
 
 
   out <- list(DZ = datDZ,
@@ -123,7 +123,6 @@ prep_uni_data <- function(db, db_cohort, trait, response_type, same_sex = TRUE) 
 prep_uni_data_non_expand <- function(db, trait, response_type, covariates = NULL, same_sex = TRUE) {
 
   if (!is_null(covariates)) covs_in_twin_frame <- paste0(covariates, c(1, 2)) else covs_in_twin_frame <- NULL
-
 
   db <- db %>%
     select(pairnnr, twinnr, all_of(trait), Female, Zyg, b_year, all_of(covariates)) %>%
@@ -158,8 +157,6 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covariates = NULL
       if (same_sex) filter(., Zyg == "DZ_same_sex") else filter(., Zyg %in% c("DZ_same_sex", "DZ_diff_sex"))
 
     } %>%
-    group_by(pairnnr) %>%
-    # mutate(Twin = sample.int(2, 2)) %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
     pivot_wider(names_from = Twin, values_from = c(X, Female, Birth_year_first, Birth_year_second, all_of(covariates)), names_sep = "") %>%
@@ -177,9 +174,9 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covariates = NULL
       mutate(X1 = mxFactor(X1, levels = sort(unique(X1))),
              X2 = mxFactor(X2, levels = sort(unique(X2))))
 
-    class <- "prep.uni.bin"
+    class <- c("prep.uni.bin", "prep.uni")
 
-  } else class <- "prep.uni.num"
+  } else class <- c("prep.uni.num", "prep.uni")
 
 
   out <- list(DZ = datDZ, MZ = datMZ, same_sex = same_sex, trait = trait, response_type = response_type)
@@ -243,4 +240,94 @@ prep_5groups <- function(prep) {
   out
 
 }
+
+#' @export
+prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) {
+
+  X_is_factor <- is.factor(db[[traitX]])
+  Y_is_factor <- is.factor(db[[traitY]])
+
+  db <- db %>%
+    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year) %>%
+    mutate(Zyg = ifelse(twinnr == "al8087332", "MZ", Zyg))
+
+  birth_year_poly <- db %>%
+    pull(b_year) %>%
+    scale() %>%
+    poly(degree = 2, raw = TRUE) %>%
+    as_tibble() %>%
+    rename(Birth_year_first = `1`, Birth_year_second = `2`)
+
+  db <- bind_cols(db, birth_year_poly)
+
+  datMZ <- db %>%
+    filter(Zyg == "MZ") %>%
+    mutate(Twin = str_sub(twinnr, start = -1)) %>%
+    select(-Zyg, -twinnr) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year")) %>%
+    as_tibble()
+
+  datDZ <- db %>%
+    {
+
+      if (same_sex) filter(., Zyg == "DZ_same_sex") else filter(., Zyg %in% c("DZ_same_sex", "DZ_diff_sex"))
+
+    } %>%
+    mutate(Twin = str_sub(twinnr, start = -1)) %>%
+    select(-Zyg, -twinnr) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year")) %>%
+    as_tibble()
+
+
+  if (X_is_factor) {
+
+    datMZ <- datMZ %>%
+      mutate(X1 = mxFactor(X1, levels = sort(unique(X1))),
+             X2 = mxFactor(X2, levels = sort(unique(X2))))
+
+    datDZ <- datDZ %>%
+      mutate(X1 = mxFactor(X1, levels = sort(unique(X1))),
+             X2 = mxFactor(X2, levels = sort(unique(X2))))
+
+
+  }
+
+  if (Y_is_factor) {
+
+    datMZ <- datMZ %>%
+      mutate(Y1 = mxFactor(Y1, levels = sort(unique(Y1))),
+             Y2 = mxFactor(Y2, levels = sort(unique(Y2))))
+
+    datDZ <- datDZ %>%
+      mutate(Y1 = mxFactor(Y1, levels = sort(unique(Y1))),
+             Y2 = mxFactor(Y2, levels = sort(unique(Y2))))
+
+
+  }
+
+  # Get rid of pairs where both are NAs
+  these <- select(datMZ, X1, X2, Y1, Y2) %>%
+    is.na() %>%
+    rowSums()
+
+  exclude_MZ <- datMZ$pairnnr[these == 4]
+
+  these <- select(datDZ, X1, X2, Y1, Y2) %>%
+    is.na() %>%
+    rowSums()
+
+  exclude_DZ <- datDZ$pairnnr[these == 4]
+
+  datMZ <- datMZ %>% filter(!pairnnr %in% exclude_MZ)
+  datDZ <- datDZ %>% filter(!pairnnr %in% exclude_DZ)
+
+
+  out <- list(DZ = datDZ, MZ = datMZ, traitX = traitX, traitY = traitY)
+  class(out) <- "prep.biv"
+  out
+
+}
+
 

@@ -148,6 +148,10 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
   fit_saturated <- mxTryHard(model_saturated, intervals = TRUE)
 
   # RUN SUBMODELS
+  model_no_cov  <- mxModel(fit_saturated, name = "no_cov" )
+  model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_fem", "beta_birth_year_first", "beta_birth_year_second"), free = FALSE, values = 0)
+  fit_no_cov    <- mxTryHard(model_no_cov)
+
 
   # Constrain expected Thresholds to be equal across Twin Order
 
@@ -173,7 +177,7 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
 
 
   init_thresh <- mean(mxEval(c(tMZ, tDZ), fitETO))
-  modelETOZ <- mxModel(fitETO, name = "equal_threshs_across_order_zyg") %>%
+  modelETOZ <- mxModel(fitETO, name = "ETOZ") %>%
     omxSetParameters(
       label = c("tMZ", "tDZ"),
       free = TRUE,
@@ -184,12 +188,13 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
   fitETOZ <- mxTryHard(modelETOZ)
 
   out <- list(sat = fit_saturated,
+              no_cov = fit_no_cov,
               ETO = fitETO,
               ETOZ = fitETOZ,
               trait = x$trait,
               response_type = x$response_type)
 
-  class(out) <- "saturated.bin"
+  class(out) <- "saturated.binary"
 
   out
 
@@ -298,6 +303,11 @@ fit_saturated.prep.uni.num <- function(x, ...) {
   model_saturated <- mxModel("saturated", modelMZ, modelDZ, multi)
   fit_saturated <- mxTryHard(model_saturated)
 
+  # model without covariates
+  model_no_cov  <- mxModel(fit_saturated, name = "no_cov" )
+  model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_fem", "beta_birth_year_first", "beta_birth_year_second"), free = FALSE, values = 0)
+  fit_no_cov    <- mxTryHard(model_no_cov)
+
 
   init_MZ <- mean(mxEval(c(mMZ1, mMZ2), fit_saturated))
   init_DZ <- mean(mxEval(c(mDZ1, mDZ2), fit_saturated))
@@ -334,11 +344,12 @@ fit_saturated.prep.uni.num <- function(x, ...) {
 
   out <- list(
     sat = fit_saturated,
+    no_cov = fit_no_cov,
     EMO = fitEMO,
     EMVO = fitEMVO,
     EMVOZ = fitEMVOZ,
-    trait = x$Trait,
-    response_type = x$response_tpye
+    trait = x$trait,
+    response_type = x$response_type
   )
 
   class(out) <- "saturated.num"
@@ -630,7 +641,6 @@ fit_saturated.prep.uni.5group.num <- function(x, ...) {
 
   fit_sat <- mxTryHard(model_sat)
 
-
   # Test covariates
   model_no_cov  <- mxModel(fit_sat, name = "no_cov")
   model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_m_birth_year_first", "beta_m_birth_year_second", "beta_f_birth_year_first", "beta_f_birth_year_second"), free = FALSE, values = 0)
@@ -693,16 +703,11 @@ fit_saturated.prep.uni.5group.num <- function(x, ...) {
               response_type = x$response_type,
               trait = x$trait)
 
-  class(out) <- "saturated.5group.binary"
+  class(out) <- "saturated.5group.num"
   out
 
 
-
-
-
 }
-
-
 
 
 
