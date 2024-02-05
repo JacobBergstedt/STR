@@ -93,6 +93,12 @@ fit_ACE <- function(x, ...) {
 
 }
 
+
+
+# Univariate --------------------------------------------------------------
+
+
+
 #' @export
 fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second"), constrained = TRUE) {
 
@@ -144,6 +150,11 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
 
 
 }
+
+
+
+# 5 group ----------------------------------------------------------------
+
 
 
 #' @export
@@ -448,5 +459,35 @@ fit_ACE.prep.uni.5group.num <- function(x) {
   out$trait <- x$trait
   class(out) <- "ACE.5group"
   out
+
+}
+
+
+
+# Bivariate ---------------------------------------------------------------
+
+
+
+#' @export
+fit_ACE.prep.biv <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second")) {
+
+  m <- umxACE(
+    name = "ACE_biv",
+    selDVs = c("X", "Y"),
+    selCovs = c("Female", "Birth_year_first"),
+    sep = "",
+    dzData = as.data.frame(x$DZ),
+    mzData = as.data.frame(x$MZ),
+    tryHard = "yes",
+    addCI = FALSE,
+    autoRun = FALSE
+  )
+
+  ACE <- mxTryHard(m)
+
+  out <- list(ACE = ACE, response_type = x$response_type, traitX = x$traitX, traitY = x$traitY)
+  class(out) <- c("ACE.biv")
+  out
+
 
 }

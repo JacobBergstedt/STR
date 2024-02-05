@@ -248,8 +248,7 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
   Y_is_factor <- is.factor(db[[traitY]])
 
   db <- db %>%
-    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year) %>%
-    mutate(Zyg = ifelse(twinnr == "al8087332", "MZ", Zyg))
+    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year)
 
   birth_year_poly <- db %>%
     pull(b_year) %>%
