@@ -12,26 +12,26 @@ get_estimates <- function(x, ...) {
 get_estimates.ACE.uni <- function(x) {
 
 
-  x <- x$ACE
+  ACE <- x$ACE
 
 
   # Variance components
-  A <- as.numeric(mxEval(top.A, x))
-  C <- as.numeric(mxEval(top.C, x))
-  E <- as.numeric(mxEval(top.E, x))
+  A <- as.numeric(mxEval(top.A, ACE))
+  C <- as.numeric(mxEval(top.C, ACE))
+  E <- as.numeric(mxEval(top.E, ACE))
 
-  E_sd <- as.numeric(mxSE(top.E, x))
-  A_sd <- as.numeric(mxSE(top.A, x))
-  C_sd <- as.numeric(mxSE(top.C, x))
+  E_sd <- as.numeric(mxSE(top.E, ACE))
+  A_sd <- as.numeric(mxSE(top.A, ACE))
+  C_sd <- as.numeric(mxSE(top.C, ACE))
 
 
   # Heritability
-  h2 <- as.numeric(mxEval(top.A / top.Vtot, x))
-  h2_SD <- as.numeric(mxSE(top.A / top.Vtot, x))
-  c2 <- as.numeric(mxEval(top.C / top.Vtot, x))
-  c2_SD <- as.numeric(mxSE(top.C / top.Vtot, x))
-  e2 <- as.numeric(mxEval(top.E / top.Vtot, x))
-  e2_SD <- as.numeric(mxSE(top.E / top.Vtot, x))
+  h2 <- as.numeric(mxEval(top.A / top.Vtot, ACE))
+  h2_SD <- as.numeric(mxSE(top.A / top.Vtot, ACE))
+  c2 <- as.numeric(mxEval(top.C / top.Vtot, ACE))
+  c2_SD <- as.numeric(mxSE(top.C / top.Vtot, ACE))
+  e2 <- as.numeric(mxEval(top.E / top.Vtot, ACE))
+  e2_SD <- as.numeric(mxSE(top.E / top.Vtot, ACE))
 
   tibble(A = A,
          C = C,
