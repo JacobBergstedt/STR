@@ -113,9 +113,12 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
       sep = "",
       dzData = x$DZ,
       mzData = x$MZ,
-      tryHard = "yes",
+      opt = "NPSOL",
+      autoRun = FALSE,
       addCI = FALSE
     )
+
+    m <- mxTryHard(m)
 
     # AE Model
     m_AE <- umxModify(m, update = "c_r1c1", name = "AE", tryHard = "yes")
@@ -133,9 +136,13 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
       sep = "",
       dzData = x$DZ,
       mzData = x$MZ,
-      tryHard = "yes",
-      addCI = FALSE
-    )
+      autoRun = FALSE,
+      opt = "NPSOL",
+      addCI = FALSE)
+
+    m <- mxTryHard(m)
+
+
 
 
     m_AE    <- umxModify(m, update = "C_r1c1", name = "AE", tryHard = "yes")
@@ -321,7 +328,7 @@ fit_ACE.prep.uni.5group.num <- function(x) {
 
   svB_birth_year_first <- 0.05 # start value for regressions
   svB_birth_year_second <- 0.05
-  svMe <- 20
+  svMe <- 1
   svTh      <- 0.8                       # start value for thresholds
   svCor     <- 0.5                       # start value for correlations
   lbCor     <- -0.99                     # lower bounds for correlations
@@ -474,6 +481,7 @@ fit_ACE.prep.biv <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
   m <- umxACE(
     name = "ACE_biv",
     selDVs = c("X", "Y"),
+    opt = "NPSOL",
     selCovs = c("Female", "Birth_year_first"),
     sep = "",
     dzData = as.data.frame(x$DZ),
