@@ -214,8 +214,21 @@ prep_5groups <- function(prep) {
     mutate(Xm = if_else(Female1 == 0, X1, X2), Xf = if_else(Female1 == 1, X1, X2)) %>%
     select(-X1, -X2) %>%
     rename(X1 = Xf, X2 = Xm) %>%
-    select(pairnnr, X1, X2, contains("Birth_year")) %>%
-    mutate(X1 = mxFactor(X1, levels(X1)), X2 = mxFactor(X2, levels(X2)))
+    select(pairnnr, X1, X2, contains("Birth_year"))
+
+  if (prep$response_type == "binary") {
+
+    dzoData <- dzoData %>%
+      mutate(X1 = mxFactor(X1, levels(X1)), X2 = mxFactor(X2, levels(X2)))
+
+    class <- "prep.uni.5group.binary"
+
+  } else {
+
+    class <- "prep.uni.5group.num"
+
+  }
+
 
   out <- list(mzm = mzmData,
               dzm = dzmData,
@@ -227,16 +240,6 @@ prep_5groups <- function(prep) {
               response_type = prep$response_type)
 
 
-
-  if (prep$response_type == "binary") {
-
-    class <- "prep.uni.5group.binary"
-
-  } else {
-
-    class <- "prep.uni.5group.num"
-
-  }
   class(out) <- class
   out
 

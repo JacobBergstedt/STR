@@ -482,7 +482,7 @@ fit_ACE.prep.biv <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
     name = "ACE_biv",
     selDVs = c("X", "Y"),
     opt = "NPSOL",
-    selCovs = c("Female", "Birth_year_first"),
+    selCovs = covs,
     sep = "",
     dzData = as.data.frame(x$DZ),
     mzData = as.data.frame(x$MZ),
@@ -493,7 +493,7 @@ fit_ACE.prep.biv <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
 
   ACE <- mxTryHard(m)
 
-  out <- list(ACE = ACE, response_type = x$response_type, traitX = x$traitX, traitY = x$traitY)
+  out <- list(ACE = ACE,  traitX = x$traitX, traitY = x$traitY)
   class(out) <- c("ACE.biv")
   out
 

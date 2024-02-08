@@ -12,42 +12,55 @@ get_estimates <- function(x, ...) {
 get_estimates.ACE.uni <- function(x) {
 
 
-  ACE <- x$ACE
+  extract_from_model <- function(m) {
 
 
-  # Variance components
-  A <- as.numeric(mxEval(top.A, ACE))
-  C <- as.numeric(mxEval(top.C, ACE))
-  E <- as.numeric(mxEval(top.E, ACE))
+    # Variance components
+    A <- as.numeric(mxEval(top.A, m))
+    C <- as.numeric(mxEval(top.C, m))
+    E <- as.numeric(mxEval(top.E, m))
 
-  E_sd <- as.numeric(mxSE(top.E, ACE))
-  A_sd <- as.numeric(mxSE(top.A, ACE))
-  C_sd <- as.numeric(mxSE(top.C, ACE))
+    E_sd <- as.numeric(mxSE(top.E, m))
+    A_sd <- as.numeric(mxSE(top.A, m))
+    C_sd <- as.numeric(mxSE(top.C, m))
 
 
-  # Heritability
-  h2 <- as.numeric(mxEval(top.A / top.Vtot, ACE))
-  h2_SD <- as.numeric(mxSE(top.A / top.Vtot, ACE))
-  c2 <- as.numeric(mxEval(top.C / top.Vtot, ACE))
-  c2_SD <- as.numeric(mxSE(top.C / top.Vtot, ACE))
-  e2 <- as.numeric(mxEval(top.E / top.Vtot, ACE))
-  e2_SD <- as.numeric(mxSE(top.E / top.Vtot, ACE))
+    # Heritability
+    h2 <- as.numeric(mxEval(top.A / top.Vtot, m))
+    h2_SD <- as.numeric(mxSE(top.A / top.Vtot, m))
+    c2 <- as.numeric(mxEval(top.C / top.Vtot, m))
+    c2_SD <- as.numeric(mxSE(top.C / top.Vtot, m))
+    e2 <- as.numeric(mxEval(top.E / top.Vtot, m))
+    e2_SD <- as.numeric(mxSE(top.E / top.Vtot, m))
 
-  tibble(A = A,
-         C = C,
-         E = E,
-         A_SD = A_sd,
-         C_SD = C_sd,
-         E_SD = E_sd,
-         h2 = h2,
-         h2_SD = h2_SD,
-         c2 = c2,
-         c2_SD = c2_SD,
-         e2 = e2,
-         e2_SD = e2_SD,
-         Trait = x$trait,
-         Response_type = x$response_type,
-         Constrained = x$constrained)
+    tibble(Model = m$name,
+           A = A,
+           C = C,
+           E = E,
+           A_SD = A_sd,
+           C_SD = C_sd,
+           E_SD = E_sd,
+           h2 = h2,
+           h2_SD = h2_SD,
+           c2 = c2,
+           c2_SD = c2_SD,
+           e2 = e2,
+           e2_SD = e2_SD)
+
+
+  }
+
+  out_info <- tibble(Trait = x$trait,
+                     Response_type = x$response_type,
+                     Constrained = x$constrained)
+
+
+  out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
 
 }
 

@@ -11,10 +11,11 @@ compare <- function(x, ...) {
 #' @export
 compare.ACE.uni <- function(x) {
 
-  mxCompare(x$ACE, list(x$AE, x$CE, x$E)) %>%
+  mxCompare(x$ACE, list(x$AE, x$CE)) %>%
     as_tibble() %>%
     select(-(fit:SBchisq)) %>%
     mutate(Trait = x$trait, Response_type = x$response_type, Constrained = x$constrained)
+
 
 }
 
