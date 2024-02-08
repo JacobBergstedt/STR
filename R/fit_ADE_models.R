@@ -102,7 +102,7 @@ fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
   if (constrained) {
 
     m <- umxACE(
-      name = "ACE_ICD",
+      name = "ADE",
       selDVs = "X",
       selCovs = covs,
       sep = "",
@@ -120,13 +120,13 @@ fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
     m_AE <- umxModify(m, update = "c_r1c1", name = "AE", tryHard = "yes")
 
     # CE Model
-    m_CE <- umxModify(m, update = "a_r1c1", name = "CE", tryHard = "yes")
+    m_CE <- umxModify(m, update = "a_r1c1", name = "DE", tryHard = "yes")
 
 
   } else {
 
     m <- umxACEv(
-      name = "ACE_ICD",
+      name = "ADE",
       selDVs = "X",
       selCovs = covs,
       sep = "",
@@ -145,7 +145,7 @@ fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
     m_AE    <- umxModify(m, update = "C_r1c1", name = "AE", tryHard = "yes")
 
     # CE Model
-    m_DE    <- umxModify(m, update = "A_r1c1", name = "CE", tryHard = "yes")
+    m_DE    <- umxModify(m, update = "A_r1c1", name = "DE", tryHard = "yes")
 
 
   }

@@ -107,7 +107,7 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
   if (constrained) {
 
     m <- umxACE(
-      name = "ACE_ICD",
+      name = "ACE",
       selDVs = "X",
       selCovs = covs,
       sep = "",
@@ -130,7 +130,7 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
   } else {
 
     m <- umxACEv(
-      name = "ACE_ICD",
+      name = "ACE",
       selDVs = "X",
       selCovs = covs,
       sep = "",
