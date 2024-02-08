@@ -97,8 +97,6 @@ fit_ADE <- function(x, ...) {
 #' @export
 fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second"), constrained = TRUE) {
 
-
-
   if (constrained) {
 
     m <- umxACE(

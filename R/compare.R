@@ -22,6 +22,19 @@ compare.ACE.uni <- function(x) {
 
 
 #' @export
+compare.ADE.uni <- function(x) {
+
+  mxCompare(x$ADE, list(x$AE, x$DE)) %>%
+    as_tibble() %>%
+    select(-(fit:SBchisq)) %>%
+    mutate(Trait = x$trait, Response_type = x$response_type, Constrained = x$constrained)
+
+
+}
+
+
+
+#' @export
 compare.ACE.5group <- function(x) {
 
   # Test Significance of Sources of Variance of ACEra/rc model with Qualitative and Quantitative Sex differences

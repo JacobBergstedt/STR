@@ -66,6 +66,66 @@ get_estimates.ACE.uni <- function(x) {
 
 
 #' @export
+get_estimates.ADE.uni <- function(x) {
+
+
+  extract_from_model <- function(m) {
+
+
+    # Variance components
+    A <- as.numeric(mxEval(top.A, m))
+    D <- as.numeric(mxEval(top.C, m))
+    E <- as.numeric(mxEval(top.E, m))
+
+    A_sd <- as.numeric(mxSE(top.A, m))
+    D_sd <- as.numeric(mxSE(top.C, m))
+    E_sd <- as.numeric(mxSE(top.E, m))
+
+
+
+
+    # Heritability
+    h2 <- as.numeric(mxEval(top.A / top.Vtot, m))
+    h2_SD <- as.numeric(mxSE(top.A / top.Vtot, m))
+    d2 <- as.numeric(mxEval(top.C / top.Vtot, m))
+    d2_SD <- as.numeric(mxSE(top.C / top.Vtot, m))
+    e2 <- as.numeric(mxEval(top.E / top.Vtot, m))
+    e2_SD <- as.numeric(mxSE(top.E / top.Vtot, m))
+
+    tibble(Model = m$name,
+           A = A,
+           D = D,
+           E = E,
+           A_SD = A_sd,
+           D_SD = D_sd,
+           E_SD = E_sd,
+           h2 = h2,
+           h2_SD = h2_SD,
+           d2 = d2,
+           d2_SD = d2_SD,
+           e2 = e2,
+           e2_SD = e2_SD)
+
+
+  }
+
+  out_info <- tibble(Trait = x$trait,
+                     Response_type = x$response_type,
+                     Constrained = x$constrained)
+
+
+  out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
+
+}
+
+
+
+#' @export
 get_estimates.ACE.biv <- function(x) {
 
   ACE <- x$ACE
