@@ -150,7 +150,7 @@ fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
 
   }
 
-  out <- list(ACE = m, AE = m_AE, DE = m_DE, response_type = x$response_type, trait = x$trait, constrained = constrained)
+  out <- list(ADE = m, AE = m_AE, DE = m_DE, response_type = x$response_type, trait = x$trait, constrained = constrained)
   class(out) <- c("ADE.uni")
   out
 
