@@ -100,7 +100,7 @@ fit_ACE <- function(x, ...) {
 
 
 #' @export
-fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second"), constrained = TRUE) {
+fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
 
 
 
@@ -129,6 +129,10 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
 
   } else {
 
+
+    browser()
+
+
     m <- umxACEv(
       name = "ACE",
       selDVs = "X",
@@ -139,6 +143,7 @@ fit_ACE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_ye
       autoRun = FALSE,
       opt = "NPSOL",
       addCI = FALSE)
+
 
     m <- mxTryHard(m)
 

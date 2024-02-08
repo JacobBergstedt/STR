@@ -63,7 +63,7 @@ fit_ADE_5group_sub_models <- function(fitADEra, svPe, svPa) {
 
   list(
     ADEra = fitADEra,
-    ADErc = fitADErd,
+    ADErd = fitADErd,
     ADEq = fitADEq,
     ADE = fitADE,
     AEra = fitAEra,
@@ -95,7 +95,7 @@ fit_ADE <- function(x, ...) {
 
 
 #' @export
-fit_ADE.prep.uni <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second"), constrained = TRUE) {
+fit_ADE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
 
   if (constrained) {
 

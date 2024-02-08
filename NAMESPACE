@@ -2,6 +2,7 @@
 
 S3method(compare,ACE.5group)
 S3method(compare,ACE.uni)
+S3method(compare,ADE.5group)
 S3method(compare,ADE.uni)
 S3method(compare,saturated.5group.binary)
 S3method(compare,saturated.5group.num)
