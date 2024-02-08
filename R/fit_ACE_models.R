@@ -26,7 +26,7 @@ fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa) {
   fitACE    <- mxTryHard(modelACE)
 
   # Test Significance of Sources of Variance of ACEra/rc model with Qualitative and Quantitative Sex differences
-  # Run AEra model®
+  # Run AEra model
   modelAEra <- mxModel(fitACEra, name="AE_5group_ra")
   modelAEra <- omxSetParameters(modelAEra, labels=c("VCf11", "VCm11"), free = FALSE, values = 0)
   fitAEra   <- mxTryHard(modelAEra)

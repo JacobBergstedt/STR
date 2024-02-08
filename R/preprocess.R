@@ -214,7 +214,8 @@ prep_5groups <- function(prep) {
     mutate(Xm = if_else(Female1 == 0, X1, X2), Xf = if_else(Female1 == 1, X1, X2)) %>%
     select(-X1, -X2) %>%
     rename(X1 = Xf, X2 = Xm) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year")) %>%
+    mutate(X1 = mxFactor(X1, levels(X1)), X2 = mxFactor(X2, levels(X2)))
 
   out <- list(mzm = mzmData,
               dzm = dzmData,
