@@ -129,10 +129,6 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
 
   } else {
 
-
-    browser()
-
-
     m <- umxACEv(
       name = "ACE",
       selDVs = "X",
