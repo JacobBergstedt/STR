@@ -39,7 +39,15 @@ compare.ACE.5group <- function(x) {
 
   # Test Significance of Sources of Variance of ACEra/rc model with Qualitative and Quantitative Sex differences
   # Run AEra model
-  out_ra <- mxCompare(x$ACEra, list(x$ACErc, x$ACEq, x$ACE)) %>%
+  out_ra <- mxCompare(x$ACEra, list(x$ACEq, x$ACE)) %>%
+    as_tibble() %>%
+    select(-(fit:SBchisq))
+
+  out_rc <- mxCompare(x$ACErc, list(x$ACEq, x$ACE)) %>%
+    as_tibble() %>%
+    select(-(fit:SBchisq))
+
+  out_rq <- mxCompare(x$ACEq, x$ACE) %>%
     as_tibble() %>%
     select(-(fit:SBchisq))
 
@@ -67,7 +75,7 @@ compare.ACE.5group <- function(x) {
     select(-(fit:SBchisq))
 
 
-  bind_rows(out_ra, out_ra_subs, out_q_subs, out) %>%
+  bind_rows(out_ra, out_rc, out_rq, out_ra_subs, out_q_subs, out) %>%
     mutate(Trait = x$trait, Response_type = x$response_type)
 
 }
@@ -76,28 +84,27 @@ compare.ACE.5group <- function(x) {
 #' @export
 compare.ADE.5group <- function(x) {
 
+  out_ra <- mxCompare(x$ADEra, list(x$ADEq, x$ADE)) %>%
+    as_tibble()
 
-  out1 <- mxCompare(x$ADEra, list(x$ADErd, x$ADEq, x$ADE)) %>%
-    as_tibble() %>%
+  out_rd <- mxCompare(x$ADErd, list(x$ADEq, x$ADE)) %>%
+    as_tibble()
+
+  out2 <- mxCompare(x$ADEra, x$AEra) %>%
+    as_tibble()
+
+  # Print Comparative Fit Statistics
+  out3 <- mxCompare(x$ADEq, x$AEq) %>%
+    as_tibble()
+
+  # Print Comparative Fit Statistics
+  out4 <- mxCompare(x$ADE, x$AE) %>%
+    as_tibble()
+
+  bind_rows(out_ra, out_rd,  out2, out3, out4) %>%
     select(-(fit:SBchisq)) %>%
     mutate(Trait = x$trait, Response_type = x$response_type)
 
-  out2 <- mxCompare(x$ADEra, list(x$ADErd, x$AEra, x$AErd)) %>%
-    as_tibble() %>%
-    select(-(fit:SBchisq))
-
-  # Print Comparative Fit Statistics
-  out3 <- mxCompare(x$ADEq, list( x$AEq, x$Eq)) %>%
-    as_tibble() %>%
-    select(-(fit:SBchisq))
-
-
-  # Print Comparative Fit Statistics
-  out4 <- mxCompare(x$ADE, list(x$AE, x$E)) %>%
-    as_tibble() %>%
-    select(-(fit:SBchisq))
-
-  bind_rows(out1, out2, out3, out4) %>% mutate(Trait = x$trait, Response_type = x$response_type)
 
 }
 
@@ -127,8 +134,19 @@ compare.saturated.num <- function(x) {
 #' @export
 compare.saturated.5group.binary <- function(x) {
 
+  out1 <- mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$ETO)) %>%
+    as_tibble()
 
-  mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$ETO, x$ETZ, x$ETP, x$ETS)) %>%
+  out2 <- mxCompare(x$ETO, x$ETOZ) %>%
+    as_tibble()
+
+  out3 <- mxCompare(x$ETZ, x$ETP) %>%
+    as_tibble()
+
+  out4 <- mxCompare(x$ETP, x$ETS) %>%
+    as_tibble()
+
+  bind_rows(out1, out2, out3, out4) %>%
     as_tibble() %>%
     select(-(fit:SBchisq)) %>%
     mutate(Trait = x$trait, Response_type = x$response_type)
@@ -139,10 +157,26 @@ compare.saturated.5group.binary <- function(x) {
 #' @export
 compare.saturated.5group.num <- function(x) {
 
-  mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$EMO, x$EMVO, x$EMVZ, x$EMVP, x$EMVS)) %>%
-    as_tibble() %>%
+  out1 <- mxCompare(x$sat_5group_num, list(x$no_cov, x$no_sex_diff_cov, x$EMO)) %>%
+    as_tibble()
+
+  out2 <- mxCompare(x$EMO, x$EMVO) %>%
+    as_tibble()
+
+  out3 <- mxCompare(x$EMVO, x$EMVZ) %>%
+    as_tibble()
+
+  out4 <- mxCompare(x$EMVZ, x$EMVP) %>%
+    as_tibble()
+
+  out5 <- mxCompare(x$EMVP, x$EMVS) %>%
+    as_tibble()
+
+
+  bind_rows(out1, out2, out3, out4, out5) %>%
     select(-(fit:SBchisq)) %>%
     mutate(Trait = x$trait, Response_type = x$response_type)
+
 
 }
 
