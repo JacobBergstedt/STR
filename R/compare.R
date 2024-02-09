@@ -134,16 +134,16 @@ compare.saturated.num <- function(x) {
 #' @export
 compare.saturated.5group.binary <- function(x) {
 
-  out1 <- mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$ETO)) %>%
+  out1 <- mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$equal_order)) %>%
     as_tibble()
 
-  out2 <- mxCompare(x$ETO, x$ETOZ) %>%
+  out2 <- mxCompare(x$equal_order, x$equal_order_zyg) %>%
     as_tibble()
 
-  out3 <- mxCompare(x$ETZ, x$ETP) %>%
+  out3 <- mxCompare(x$equal_order_zyg, x$equal_order_zyg_ss_os) %>%
     as_tibble()
 
-  out4 <- mxCompare(x$ETP, x$ETS) %>%
+  out4 <- mxCompare(x$equal_order_zyg_ss_os, x$equal_order_zyg_ss_os_sex) %>%
     as_tibble()
 
   bind_rows(out1, out2, out3, out4) %>%
@@ -157,19 +157,19 @@ compare.saturated.5group.binary <- function(x) {
 #' @export
 compare.saturated.5group.num <- function(x) {
 
-  out1 <- mxCompare(x$sat_5group_num, list(x$no_cov, x$no_sex_diff_cov, x$EMO)) %>%
+  out1 <- mxCompare(x$sat, list(x$no_cov, x$no_sex_diff_cov, x$equal_mean_order)) %>%
     as_tibble()
 
-  out2 <- mxCompare(x$EMO, x$EMVO) %>%
+  out2 <- mxCompare(x$equal_mean_order, x$equal_mean_var_order) %>%
     as_tibble()
 
-  out3 <- mxCompare(x$EMVO, x$EMVZ) %>%
+  out3 <- mxCompare(x$equal_mean_var_order, x$equal_mean_var_order_zyg) %>%
     as_tibble()
 
-  out4 <- mxCompare(x$EMVZ, x$EMVP) %>%
+  out4 <- mxCompare(x$equal_mean_var_order_zyg, x$equal_mean_var_order_zyg_ss_os) %>%
     as_tibble()
 
-  out5 <- mxCompare(x$EMVP, x$EMVS) %>%
+  out5 <- mxCompare(x$equal_mean_var_order_zyg_ss_os, x$equal_mean_var_order_zyg_ss_os_sex) %>%
     as_tibble()
 
 
@@ -179,4 +179,3 @@ compare.saturated.5group.num <- function(x) {
 
 
 }
-
