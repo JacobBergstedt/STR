@@ -689,7 +689,7 @@ fit_saturated.prep.uni.5group.num <- function(x, ...) {
   model_equal_mean_var_order_zyg_ss_os_sex <- mxModel(fit_equal_mean_var_order_zyg_ss_os, name = "sat_5group_equal_mean_var_order_zyg_ss_os_sex")
   model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("mZf","mZm"), free=TRUE, values=svMe, newlabels='mZ')
   model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("vZf","vZm"), free=TRUE, values=svVa, newlabels='vZ')
-  fit_equal_mean_var_order_zyg_ss_os_sex   <- mxRun(model_equal_mean_var_order_zyg_ss_os_sex)
+  fit_equal_mean_var_order_zyg_ss_os_sex   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os_sex)
 
 
   out <- list(sat = fit_sat,
@@ -711,3 +711,175 @@ fit_saturated.prep.uni.5group.num <- function(x, ...) {
 
 
 
+fit_saturated_adjust_on_age.prep.uni.5group.num <- function(x, ...) {
+
+  # Select Variables for Analysis
+  vars      <- "X"
+  nv        <- 1
+  ntv       <- nv * 2
+  selVars   <- paste(vars, c(rep(1, nv), rep(2, nv)), sep="")
+
+
+  # Set Starting Values
+  svB_age <- 5 # start value for regressions
+  svMe <- 1
+  svVa      <- 0.8                       # start value for variance
+  lbVa      <- 0.0001                    # start value for lower bounds
+
+  # Definition variables
+
+  def_age <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("data.Age1"), name = "def_age")
+
+  # Regression parameters
+
+  path_bm_age  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_age, label = "beta_m_age", name = "bm_age")
+  path_bf_age  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_age, label = "beta_f_age", name = "bf_age")
+
+  # Create Algebra for expected Mean Matrices
+  mean_mzf   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mMZf1","mMZf2"), name="mean_mzf")
+  mean_dzf   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mDZf1","mDZf2"), name="mean_dzf")
+  mean_mzm   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mMZm1","mMZm2"), name="mean_mzm")
+  mean_dzm   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mDZm1","mDZm2"), name="mean_dzm")
+  mean_dzo   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mDZo1","mDZo2"), name="mean_dzo")
+
+  expMean_mzf <- mxAlgebra(expression = mean_mzf +
+                             cbind(def_age %*% bf_age, def_age %*% bf_age),
+                           name = "expMean_mzf")
+
+  expMean_dzf <- mxAlgebra(expression = mean_dzf +
+                             cbind(def_age %*% bf_age, def_age %*% bf_age),
+                           name = "expMean_dzf")
+
+  expMean_mzm <- mxAlgebra(expression = mean_mzm +
+                             cbind(def_age %*% bm_age, def_age %*% bm_age),
+                           name = "expMean_mzm")
+
+  expMean_dzm <- mxAlgebra(expression = mean_dzm +
+                             cbind(def_age %*% bm_age, def_age %*% bm_age),
+                           name = "expMean_dzm")
+
+  expMean_dzo <- mxAlgebra(expression = mean_dzo +
+                             cbind(def_age %*% bf_age, def_age %*% bm_age),
+                           name = "expMean_dzo")
+
+  funML     <- mxFitFunctionML()
+
+  # Create Algebra for expected Variance/Covariance Matrices
+  cov_mzf <- mxMatrix(type="Symm", nrow=ntv, ncol=ntv, free=TRUE, values = diag(svVa, nrow = 2, ncol = 2), lbound = diag(lbVa, nrow = 2, ncol = 2), labels=c("vMZf1","cMZf21","vMZf2"), name="cov_mzf")
+  cov_dzf <- mxMatrix(type="Symm", nrow=ntv, ncol=ntv, free=TRUE, values = diag(svVa, nrow = 2, ncol = 2), lbound = diag(lbVa, nrow = 2, ncol = 2), labels=c("vDZf1","cDZf21","vDZf2"), name="cov_dzf")
+  cov_mzm <- mxMatrix(type="Symm", nrow=ntv, ncol=ntv, free=TRUE, values = diag(svVa, nrow = 2, ncol = 2), lbound = diag(lbVa, nrow = 2, ncol = 2), labels=c("vMZm1","cMZm21","vMZm2"), name="cov_mzm")
+  cov_dzm <- mxMatrix(type="Symm", nrow=ntv, ncol=ntv, free=TRUE, values = diag(svVa, nrow = 2, ncol = 2), lbound = diag(lbVa, nrow = 2, ncol = 2), labels=c("vDZm1","cDZm21","vDZm2"), name="cov_dzm")
+  cov_dzo <- mxMatrix(type="Symm", nrow=ntv, ncol=ntv, free=TRUE, values = diag(svVa, nrow = 2, ncol = 2), lbound = diag(lbVa, nrow = 2, ncol = 2), labels=c("vDZo1","cDZo21","vDZo2"), name="cov_dzo")
+
+  # Create Algebra for Maximum Likelihood Estimates of Twin Correlations
+  matI      <- mxMatrix(type = "Iden", nrow = ntv, ncol = ntv, name = "I")
+  cor_mzf    <- mxAlgebra(solve(sqrt(I * cov_mzf)) %&% cov_mzf, name = "cor_mzf")
+  cor_dzf    <- mxAlgebra(solve(sqrt(I * cov_dzf)) %&% cov_dzf, name = "cor_dzf")
+  cor_mzm    <- mxAlgebra(solve(sqrt(I * cov_mzm)) %&% cov_mzm, name = "cor_mzm")
+  cor_dzm    <- mxAlgebra(solve(sqrt(I * cov_dzm)) %&% cov_dzm, name = "cor_dzm")
+  cor_dzo    <- mxAlgebra(solve(sqrt(I * cov_dzo)) %&% cov_dzo, name = "cor_dzo")
+
+  # Create data objects
+  data_mzf <- mxData(observed = x$mzf, type = "raw")
+  data_dzf <- mxData(observed = x$dzf, type = "raw")
+  data_mzm <- mxData(observed = x$mzm, type = "raw")
+  data_dzm <- mxData(observed = x$dzm, type = "raw")
+  data_dzo <- mxData(observed = x$dzo, type = "raw")
+
+  # Create expectation objects
+  exp_mzf    <- mxExpectationNormal(covariance = "cov_mzf", means = "expMean_mzf", dimnames = selVars)
+  exp_dzf   <- mxExpectationNormal(covariance = "cov_dzf", means = "expMean_dzf", dimnames = selVars)
+  exp_mzm   <- mxExpectationNormal(covariance = "cov_mzm", means = "expMean_mzm", dimnames = selVars)
+  exp_dzm    <- mxExpectationNormal(covariance = "cov_dzm", means = "expMean_dzm", dimnames = selVars)
+  exp_dzo    <- mxExpectationNormal(covariance = "cov_dzo", means = "expMean_dzo", dimnames = selVars)
+  funML     <- mxFitFunctionML()
+
+  # Create model objects for multiple groups
+  pars      <- list(path_bm_age, path_bf_age)
+  defs      <- list(def_age)
+
+  model_mzf  <- mxModel(pars, defs, mean_mzf, expMean_mzf, cov_mzf, cor_mzf, matI, data_mzf, exp_mzf, funML, name="mzf")
+  model_dzf  <- mxModel(pars, defs, mean_dzf, expMean_dzf, cov_dzf, cor_dzf, matI, data_dzf, exp_dzf, funML, name="dzf")
+  model_mzm  <- mxModel(pars, defs, mean_mzm, expMean_mzm, cov_mzm, cor_mzm, matI, data_mzm, exp_mzm, funML, name="mzm")
+  model_dzm  <- mxModel(pars, defs, mean_dzm, expMean_dzm, cov_dzm, cor_dzm, matI, data_dzm, exp_dzm, funML, name="dzm")
+  model_dzo  <- mxModel(pars, defs, mean_dzo, expMean_dzo, cov_dzo, cor_dzo, matI, data_dzo, exp_dzo, funML, name="dzo")
+
+  multi     <- mxFitFunctionMultigroup(c("mzf", "dzf", "mzm", "dzm","dzo"))
+
+  model_sat  <- mxModel( "sat_5group_num",
+                         pars,
+                         model_mzf,
+                         model_dzf,
+                         model_mzm,
+                         model_dzm,
+                         model_dzo,
+                         multi)
+
+  fit_sat <- mxTryHard(model_sat)
+
+  # Test covariates
+  model_no_cov  <- mxModel(fit_sat, name = "sat_5group_no_cov")
+  model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_m_age", "beta_f_age"), free = FALSE, values = 0)
+  fit_no_cov    <- mxTryHard(model_no_cov)
+
+  # Test Sex Difference in Covariate
+  model_no_sex_diff_cov <- mxModel(fit_sat, name="sat_5group_no_sex_diff_cov" )
+  model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label=c("beta_m_age","beta_f_age"), free = TRUE, values = svB_age, newlabels = "beta_age")
+  fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
+
+
+  # Constrain expected Means to be equal across twin order
+  model_equal_mean_order  <- mxModel(fit_sat, name="sat_5group_equal_mean_order" )
+  model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mMZf1","mMZf2"), free=TRUE, values=svMe, newlabels='mMZf' )
+  model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mDZf1","mDZf2"), free=TRUE, values=svMe, newlabels='mDZf' )
+  model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mMZm1","mMZm2"), free=TRUE, values=svMe, newlabels='mMZm' )
+  model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mDZm1","mDZm2"), free=TRUE, values=svMe, newlabels='mDZm' )
+  fit_equal_mean_order    <- mxTryHard(model_equal_mean_order)
+
+  # Constrain expected Means and Variances to be equal across twin order
+  model_equal_mean_var_order <- mxModel(fit_equal_mean_order, name="sat_5group_equal_mean_var_order" )
+  model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vMZf1","vMZf2"), free=TRUE, values=svVa, newlabels='vMZf')
+  model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vDZf1","vDZf2"), free=TRUE, values=svVa, newlabels='vDZf')
+  model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vMZm1","vMZm2"), free=TRUE, values=svVa, newlabels='vMZm')
+  model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vDZm1","vDZm2"), free=TRUE, values=svVa, newlabels='vDZm')
+  fit_equal_mean_var_order  <- mxTryHard(model_equal_mean_var_order)
+
+  # Constrain expected Means and Variances to be equal across twin order and zygosity
+  model_equal_mean_var_order_zyg <- mxModel(fit_equal_mean_var_order, name="sat_5group_equal_mean_var_order_zyg" )
+  model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("mMZf","mDZf"), free=TRUE, values = svMe, newlabels='mZf')
+  model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("vMZf","vDZf"), free=TRUE, values = svVa, newlabels='vZf')
+  model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("mMZm","mDZm"), free=TRUE, values = svMe, newlabels='mZm')
+  model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("vMZm","vDZm"), free=TRUE, values = svVa, newlabels='vZm')
+  fit_equal_mean_var_order_zyg  <- mxTryHard(model_equal_mean_var_order_zyg)
+
+  # Constrain expected Means and Variances to be equal across twin order and zygosity and SS/OS
+  model_equal_mean_var_order_zyg_ss_os <- mxModel(fit_equal_mean_var_order_zyg, name="sat_5group_equal_mean_var_order_zyg_ss_os" )
+  model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("mZf","mDZo1"), free=TRUE, values=svMe, newlabels='mZf')
+  model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("vZf","vDZo1"), free=TRUE, values=svVa, newlabels='vZf')
+  model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("mZm","mDZo2"), free=TRUE, values=svMe, newlabels='mZm')
+  model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("vZm","vDZo2"), free=TRUE, values=svVa, newlabels='vZm')
+  fit_equal_mean_var_order_zyg_ss_os   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os)
+
+  # Constrain expected Means and Variances to be equal across twin order and zygosity and SS/OS and sex
+  model_equal_mean_var_order_zyg_ss_os_sex <- mxModel(fit_equal_mean_var_order_zyg_ss_os, name = "sat_5group_equal_mean_var_order_zyg_ss_os_sex")
+  model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("mZf","mZm"), free=TRUE, values=svMe, newlabels='mZ')
+  model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("vZf","vZm"), free=TRUE, values=svVa, newlabels='vZ')
+  fit_equal_mean_var_order_zyg_ss_os_sex   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os_sex)
+
+
+  out <- list(sat = fit_sat,
+              no_cov = fit_no_cov,
+              no_sex_diff_cov = fit_no_sex_diff_cov,
+              equal_mean_order = fit_equal_mean_order,
+              equal_mean_var_order = fit_equal_mean_var_order,
+              equal_mean_var_order_zyg = fit_equal_mean_var_order_zyg,
+              equal_mean_var_order_zyg_ss_os = fit_equal_mean_var_order_zyg_ss_os,
+              equal_mean_var_order_zyg_ss_os_sex = fit_equal_mean_var_order_zyg_ss_os_sex,
+              response_type = x$response_type,
+              trait = x$trait)
+
+  class(out) <- "saturated.5group.num"
+  out
+
+
+}

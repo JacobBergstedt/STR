@@ -136,7 +136,7 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covariates = NULL
 
   birth_year_poly <- db %>%
     pull(b_year) %>%
-    scale() %>%
+    scale(scale = FALSE) %>%
     poly(degree = 2, raw = TRUE) %>%
     as_tibble() %>%
     rename(Birth_year_first = `1`, Birth_year_second = `2`)
@@ -179,7 +179,7 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covariates = NULL
   } else class <- c("prep.uni.num", "prep.uni")
 
 
-  out <- list(DZ = datDZ, MZ = datMZ, same_sex = same_sex, trait = trait, response_type = response_type)
+  out <- list(DZ = datDZ, MZ = datMZ, same_sex = same_sex, trait = trait, response_type = response_type, covariates = covariates)
   class(out) <- class
   out
 
@@ -195,26 +195,26 @@ prep_5groups <- function(prep) {
 
   mzmData <- prep$MZ %>%
     filter(Female1 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
 
   dzmData <- prep$DZ %>%
     filter(Female1 == 0, Female2 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
 
   mzfData <- prep$MZ %>%
     filter(Female1 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
 
   dzfData <- prep$DZ %>%
     filter(Female1 == 1, Female2 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
 
   dzoData <- prep$DZ %>%
     filter(Female1 != Female2) %>%
     mutate(Xm = if_else(Female1 == 0, X1, X2), Xf = if_else(Female1 == 1, X1, X2)) %>%
     select(-X1, -X2) %>%
     rename(X1 = Xf, X2 = Xm) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"))
+    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
 
   if (prep$response_type == "binary") {
 
@@ -237,7 +237,8 @@ prep_5groups <- function(prep) {
               dzo = dzoData,
               same_sex = FALSE,
               trait = prep$trait,
-              response_type = prep$response_type)
+              response_type = prep$response_type,
+              covariates = prep$covariates)
 
 
   class(out) <- class
