@@ -452,21 +452,25 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
   fit_saturated <- mxTryHard(model_sat)
 
   # RUN SUBMODELS
+  if (!is_null(covs)) {
 
-  # Test Significance of Covariate
-  model_no_cov  <- mxModel(fit_saturated, name = "sat_5group_no_cov")
-  model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
-  fit_no_cov    <- mxTryHard(model_no_cov)
+    # Test covariates
+    model_no_cov  <- mxModel(fit_saturated, name = "sat_5group_no_cov")
+    model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
+    fit_no_cov    <- mxTryHard(model_no_cov)
 
-  # Test Sex Difference in Covariate
-  model_no_sex_diff_cov <- mxModel(fit_saturated, name="sat_5group_no_sex_diff_cov")
-  for (cov in covs) {
+    # Test Sex Difference in Covariate
+    model_no_sex_diff_cov <- mxModel(fit_saturated, name="sat_5group_no_sex_diff_cov")
+    for (cov in covs) {
 
-    model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label = c(paste0("beta_m_", cov), paste0("beta_f_", cov)), free = TRUE, values = 0, newlabels = paste0("beta_", cov))
+      model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label = c(paste0("beta_m_", cov), paste0("beta_f_", cov)), free = TRUE, values = 0, newlabels = paste0("beta_", cov))
+
+    }
+
+    fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
 
   }
 
-  fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
 
   # Constrain expected Thresholds to be equal across twin order
   model_equal_order <- mxModel(fit_saturated, name = "sat_5group_equal_order")
@@ -494,14 +498,19 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
   fit_equal_order_zyg_ss_os_sex    <- mxTryHard(model_equal_order_zyg_ss_os_sex)
 
   out <- list(sat = fit_saturated,
-              no_cov = fit_no_cov,
-              no_sex_diff_cov = fit_no_sex_diff_cov,
               equal_order = fit_equal_order,
               equal_order_zyg = fit_equal_order_zyg,
               equal_order_zyg_ss_os = fit_equal_order_zyg_ss_os,
               equal_order_zyg_ss_os_sex = fit_equal_order_zyg_ss_os_sex,
               response_type = x$response_type,
               trait = x$trait)
+
+  if (!is_null(covs)) {
+
+    out$no_cov = fit_no_cov
+    out$no_sex_diff_cov = fit_no_sex_diff_cov
+
+  }
 
   class(out) <- "saturated.5group.binary"
   out
@@ -614,22 +623,26 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
 
   fit_sat <- mxTryHard(model_sat)
 
-  # Test covariates
-  model_no_cov  <- mxModel(fit_sat, name = "sat_5group_no_cov")
-  model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
-  fit_no_cov    <- mxTryHard(model_no_cov)
+  if (!is_null(covs)) {
 
-  # Test Sex Difference in Covariate
-  model_no_sex_diff_cov <- mxModel(fit_sat, name="sat_5group_no_sex_diff_cov")
 
-  for (cov in covs) {
+    # Test covariates
+    model_no_cov  <- mxModel(fit_sat, name = "sat_5group_no_cov")
+    model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
+    fit_no_cov    <- mxTryHard(model_no_cov)
 
-    model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label = c(paste0("beta_m_", cov), paste0("beta_f_", cov)), free = TRUE, values = 0, newlabels = paste0("beta_", cov))
+    # Test Sex Difference in Covariate
+    model_no_sex_diff_cov <- mxModel(fit_sat, name="sat_5group_no_sex_diff_cov")
+
+    for (cov in covs) {
+
+      model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label = c(paste0("beta_m_", cov), paste0("beta_f_", cov)), free = TRUE, values = 0, newlabels = paste0("beta_", cov))
+
+    }
+
+    fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
 
   }
-
-  fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
-
 
   # Constrain expected Means to be equal across twin order
   model_equal_mean_order  <- mxModel(fit_sat, name="sat_5group_equal_mean_order" )
@@ -671,8 +684,6 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
 
 
   out <- list(sat = fit_sat,
-              no_cov = fit_no_cov,
-              no_sex_diff_cov = fit_no_sex_diff_cov,
               equal_mean_order = fit_equal_mean_order,
               equal_mean_var_order = fit_equal_mean_var_order,
               equal_mean_var_order_zyg = fit_equal_mean_var_order_zyg,
@@ -680,6 +691,14 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
               equal_mean_var_order_zyg_ss_os_sex = fit_equal_mean_var_order_zyg_ss_os_sex,
               response_type = x$response_type,
               trait = x$trait)
+
+  if (!is_null(covs)) {
+
+    out$no_cov <- fit_no_cov
+    out$no_sex_diff_cov <- fit_no_sex_diff_cov
+
+
+  }
 
   class(out) <- "saturated.5group.num"
   out
