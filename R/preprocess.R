@@ -192,29 +192,30 @@ prep_5groups <- function(prep) {
 
 
   if (prep$same_sex) {stop("Doesn't make sense for same_sex = TRUE")}
+  if (!is.null(prep$covariates)) covariates <- paste0(prep$covariates, c(1, 2)) else covariates <- NULL
 
   mzmData <- prep$MZ %>%
     filter(Female1 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
+    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covariates))
 
   dzmData <- prep$DZ %>%
     filter(Female1 == 0, Female2 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
+    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covariates))
 
   mzfData <- prep$MZ %>%
     filter(Female1 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
+    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covariates))
 
   dzfData <- prep$DZ %>%
     filter(Female1 == 1, Female2 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
+    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covariates))
 
   dzoData <- prep$DZ %>%
     filter(Female1 != Female2) %>%
     mutate(Xm = if_else(Female1 == 0, X1, X2), Xf = if_else(Female1 == 1, X1, X2)) %>%
     select(-X1, -X2) %>%
     rename(X1 = Xf, X2 = Xm) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), contains(prep$covariates))
+    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covariates))
 
   if (prep$response_type == "binary") {
 
@@ -333,5 +334,4 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
   out
 
 }
-
 
