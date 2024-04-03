@@ -166,7 +166,7 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
 
 
 #' @export
-fit_ACE.prep.uni.5group.binary <- function(x) {
+fit_ACE.prep.uni.5group.binary <- function(x, covs, ...) {
 
   nv        <- 1                         # number of variables
   ntv       <- nv*2                      # number of total variables
@@ -174,8 +174,7 @@ fit_ACE.prep.uni.5group.binary <- function(x) {
 
 
 
-  svB_birth_year_first <- 0.05 # start value for regressions
-  svB_birth_year_second <- 0.05
+  svB <- 1
   svTh      <- 0.8                       # start value for thresholds
   svCor     <- 0.5                       # start value for correlations
   lbCor     <- -0.99                     # lower bounds for correlations
@@ -187,36 +186,24 @@ fit_ACE.prep.uni.5group.binary <- function(x) {
 
   # Definition variables
 
-  def_birth_year_first <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("data.Birth_year_first1"), name = "def_birth_year_first")
-  def_birth_year_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("data.Birth_year_second1"), name = "def_birth_year_second")
-
+  defs1 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "1"), name = "defs1")
+  defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
   # Regression parameters
-
-  path_bm_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_m_birth_year_first", name = "bm_birth_year_first")
-  path_bm_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_m_birth_year_second", name = "bm_birth_year_second")
-
-  path_bf_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_f_birth_year_first", name = "bf_birth_year_first")
-  path_bf_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_f_birth_year_second", name = "bf_birth_year_second")
+  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_m_", covs), name = "bm")
+  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_f_", covs), name = "bf")
 
 
   # Create Algebra for expected Mean & Threshold Matrices
   meanG <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG" )
 
-  expMean_zf <- mxAlgebra(expression = meanG +
-                            cbind(def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second,
-                                  def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second),
-                          name = "expMean_zf")
+  expMean_zf <- mxAlgebra(expression = meanG + cbind(defs1 %*% bf, defs2 %*% bf), name = "expMean_zf")
 
 
-  expMean_zm <- mxAlgebra(expression = meanG +
-                            cbind(def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second,
-                                  def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second),
+  expMean_zm <- mxAlgebra(expression = meanG + cbind(defs1 %*% bm, defs2 %*% bm),
                           name = "expMean_zm")
 
-  expMean_zo <- mxAlgebra(expression = meanG +
-                            cbind(def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second,
-                                  def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second),
+  expMean_zo <- mxAlgebra(expression = meanG + cbind(defs1 %*% bf, defs2 %*% bm),
                           name = "expMean_zo")
 
 
@@ -283,10 +270,10 @@ fit_ACE.prep.uni.5group.binary <- function(x) {
 
   # Create Model Objects for Multiple Groups
 
-  parsZf    <- list(path_bf_birthyear_first, path_bf_birthyear_second, meanG, threGf, covAf, covCf, covEf, covPf )
-  parsZm    <- list(path_bm_birthyear_first,  path_bm_birthyear_second, meanG, threGm, covAm, covCm, covEm, covPm, covAms, covCms)
+  parsZf    <- list(path_bf, meanG, threGf, covAf, covCf, covEf, covPf )
+  parsZm    <- list(path_bm, meanG, threGm, covAm, covCm, covEm, covPm, covAms, covCms)
   parsZo    <- list(parsZm, parsZf, meanG, threGo, signA, signC, covAos, covCos, pathRg, pathRc)
-  defs      <- list(def_birth_year_first, def_birth_year_second)
+  defs      <- list(defs1, defs2)
 
   modelMZf  <- mxModel( parsZf, defs, expMean_zf, covMZf, expCovMZf, data_mzf, expMZf, funML, name="MZf" )
   modelMZm  <- mxModel( parsZm, defs, expMean_zm, covMZm, expCovMZm, data_mzm, expMZm, funML, name="MZm" )
@@ -320,15 +307,14 @@ fit_ACE.prep.uni.5group.binary <- function(x) {
 
 
 #' @export
-fit_ACE.prep.uni.5group.num <- function(x) {
+fit_ACE.prep.uni.5group.num <- function(x, covs, ...) {
 
   nv        <- 1                         # number of variables
   ntv       <- nv*2                      # number of total variables
   selVars   <- paste("X", c(rep(1, nv), rep(2, nv)),sep="")
 
 
-  svB_birth_year_first <- 0.05 # start value for regressions
-  svB_birth_year_second <- 0.05
+  svB <- 1 # start value for regressions
   svMe <- 1
   svTh      <- 0.8                       # start value for thresholds
   svCor     <- 0.5                       # start value for correlations
@@ -341,17 +327,12 @@ fit_ACE.prep.uni.5group.num <- function(x) {
 
   # Definition variables
 
-  def_birth_year_first <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("data.Birth_year_first1"), name = "def_birth_year_first")
-  def_birth_year_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("data.Birth_year_second1"), name = "def_birth_year_second")
-
+  defs1 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "1"), name = "defs1")
+  defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
   # Regression parameters
-
-  path_bm_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_m_birth_year_first", name = "bm_birth_year_first")
-  path_bm_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_m_birth_year_second", name = "bm_birth_year_second")
-
-  path_bf_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_f_birth_year_first", name = "bf_birth_year_first")
-  path_bf_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_f_birth_year_second", name = "bf_birth_year_second")
+  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_m_", covs), name = "bm")
+  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_f_", covs), name = "bf")
 
 
   # Create Algebra for expected Mean & Threshold Matrices
@@ -361,20 +342,14 @@ fit_ACE.prep.uni.5group.num <- function(x) {
 
   meanG <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG" )
 
-  expMean_zf <- mxAlgebra(expression = meanGf +
-                            cbind(def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second,
-                                  def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second),
+  expMean_zf <- mxAlgebra(expression = meanGf + cbind(defs1 %*% bf, defs2 %*% bf),
                           name = "expMean_zf")
 
 
-  expMean_zm <- mxAlgebra(expression = meanGm +
-                            cbind(def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second,
-                                  def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second),
+  expMean_zm <- mxAlgebra(expression = meanGm + cbind(defs1 %*% bm, defs2 %*% bm),
                           name = "expMean_zm")
 
-  expMean_zo <- mxAlgebra(expression = meanGo +
-                            cbind(def_birth_year_first %*% bf_birth_year_first + def_birth_year_second %*% bf_birth_year_second,
-                                  def_birth_year_first %*% bm_birth_year_first + def_birth_year_second %*% bm_birth_year_second),
+  expMean_zo <- mxAlgebra(expression = meanGo + cbind(defs1 %*% bf, defs2 %*% bm),
                           name = "expMean_zo")
 
   # Create Matrices for expected Direct Symmetric Covariances
@@ -428,20 +403,11 @@ fit_ACE.prep.uni.5group.num <- function(x) {
   expDZo    <- mxExpectationNormal(covariance="expCovDZo", means="expMean_zo", dimnames = selVars)
   funML     <- mxFitFunctionML()
 
-  # Regression parameters
-
-  path_bm_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_m_birth_year_first", name = "bm_birth_year_first")
-  path_bm_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_m_birth_year_second", name = "bm_birth_year_second")
-
-  path_bf_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_f_birth_year_first", name = "bf_birth_year_first")
-  path_bf_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_f_birth_year_second", name = "bf_birth_year_second")
-
-
   # Create Model Objects for Multiple Groups
-  parsZf    <- list( path_bf_birthyear_first, path_bf_birthyear_second, covAf, covCf, covEf, covPf )
-  parsZm    <- list( path_bm_birthyear_first, path_bm_birthyear_second, covAm, covCm, covEm, covPm, covAms, covCms )
-  parsZo    <- list( parsZm, parsZf, signA, signC, covAos, covCos, pathRg, pathRc )
-  defs      <- list( def_birth_year_first, def_birth_year_second)
+  parsZf    <- list(path_bf, covAf, covCf, covEf, covPf)
+  parsZm    <- list(path_bm,  covAm, covCm, covEm, covPm, covAms, covCms)
+  parsZo    <- list(parsZm, parsZf, signA, signC, covAos, covCos, pathRg, pathRc)
+  defs      <- list(defs1, defs2)
   modelMZf  <- mxModel(parsZf, defs, meanGf, expMean_zf, covMZf, expCovMZf, dataMZf, expMZf, funML, name="MZf")
   modelDZf  <- mxModel(parsZf, defs, meanGf, expMean_zf, covDZf, expCovDZf, dataDZf, expDZf, funML, name="DZf")
   modelMZm  <- mxModel(parsZm, defs, meanGm, expMean_zm, covMZm, expCovMZm, dataMZm, expMZm, funML, name="MZm")

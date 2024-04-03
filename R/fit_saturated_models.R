@@ -7,20 +7,16 @@ fit_saturated <- function(x, ...) {
 }
 
 
-#' @export
-fit_saturated.prep.uni.bin <- function(x, ...) {
 
-  MZ <- x$MZ
-  DZ <- x$DZ
+#' @export
+fit_saturated.prep.uni.bin <- function(x, covs, ...) {
 
   nv <- 1 # number of variables
   ntv <- nv * 2 # number of total variables
   selVars <- paste("X", c(rep(1, nv), rep(2, nv)), sep = "")
 
   # Set Starting Values
-  svBsex <- 1 # start value for regressions
-  svB_birth_year_first <- 0.1 # start value for regressions
-  svB_birth_year_second <- 0.1
+  svB <- 1
 
   svTh <- .8 # start value for thresholds
   svCor <- .5 # start value for correlations
@@ -28,33 +24,15 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
   ubCor <- 0.99 # upper bounds for correlations
 
   # Create Matrices for Covariates and linear Regression Coefficients
-  def_female_MZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Female1"), name = "def_female_MZ1")
-  def_female_MZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Female2"), name = "def_female_MZ2")
-  def_female_DZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Female1"), name = "def_female_DZ1")
-  def_female_DZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Female2"), name = "def_female_DZ2")
+  defs1 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "1"), name = "defs1")
+  defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
-  def_birth_year_first_MZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_first1"), name = "def_birth_year_first_MZ1")
-  def_birth_year_first_MZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_first2"), name = "def_birth_year_first_MZ2")
-  def_birth_year_first_DZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_first1"), name = "def_birth_year_first_DZ1")
-  def_birth_year_first_DZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_first2"), name = "def_birth_year_first_DZ2")
-
-  def_birth_year_second_MZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_second1"), name = "def_birth_year_second_MZ1")
-  def_birth_year_second_MZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_second2"), name = "def_birth_year_second_MZ2")
-  def_birth_year_second_DZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_second1"), name = "def_birth_year_second_DZ1")
-  def_birth_year_second_DZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_second2"), name = "def_birth_year_second_DZ2")
-
-  path_b_sex <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svBsex, label = "beta_fem", name = "bfem" )
-  path_b_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_birth_year_first", name = "b_birth_year_first")
-  path_b_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_birth_year_second", name = "b_birth_year_second")
+  path_b  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_", covs), name = "b")
 
   # Create Algebra for expected Mean & Threshold Matrices
   meanG <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG" )
-  expMeanMZ <- mxAlgebra(expression = meanG +
-                           cbind(def_female_MZ1 %*% bfem + def_birth_year_first_MZ1 %*% b_birth_year_first + def_birth_year_second_MZ1 %*% b_birth_year_second,
-                                 def_female_MZ2 %*% bfem + def_birth_year_first_MZ2 %*% b_birth_year_first + def_birth_year_second_MZ2 %*% b_birth_year_second), name = "expMeanMZ")
-
-  expMeanDZ <- mxAlgebra(expression = meanG + cbind(def_female_DZ1 %*% bfem + def_birth_year_first_DZ1 %*% b_birth_year_first + def_birth_year_second_DZ1 %*% b_birth_year_second,
-                                                    def_female_DZ2 %*% bfem + def_birth_year_first_DZ2 %*% b_birth_year_first + def_birth_year_second_DZ2 %*% b_birth_year_second), name = "expMeanDZ")
+  expMeanMZ <- mxAlgebra(expression = meanG + cbind(defs1 %*% b, defs2 %*% b), name = "expMeanMZ")
+  expMeanDZ <- mxAlgebra(expression = meanG + cbind(defs1 %*% b, defs2 %*% b), name = "expMeanDZ")
 
   threMZ <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svTh, labels=c("tMZ1","tMZ2"), name="threMZ" )
   threDZ <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svTh, labels=c("tDZ1","tDZ2"), name="threDZ" )
@@ -87,8 +65,8 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
     )
 
   # Create Data Objects for Multiple Groups
-  dataMZ <- mxData(observed = MZ, type = "raw")
-  dataDZ <- mxData(observed = DZ, type = "raw")
+  dataMZ <- mxData(observed = x$MZ, type = "raw")
+  dataDZ <- mxData(observed = x$DZ, type = "raw")
 
   # Create Expectation Objects for Multiple Groups
   expMZ <-
@@ -109,10 +87,8 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
   funML <- mxFitFunctionML()
 
   # Create Model Objects for Multiple Groups
-  pars <- list(meanG, path_b_sex, path_b_birthyear_first, path_b_birthyear_second)
-  defs <- list(def_female_MZ1, def_female_MZ2, def_female_DZ1, def_female_DZ2,
-               def_birth_year_first_MZ1, def_birth_year_first_MZ2, def_birth_year_first_DZ1, def_birth_year_first_DZ2,
-               def_birth_year_second_MZ1, def_birth_year_second_MZ2, def_birth_year_second_DZ1, def_birth_year_second_DZ2)
+  pars <- list(meanG, path_b)
+  defs <- list(defs1, defs2)
 
   modelMZ <-
     mxModel("MZ",
@@ -137,20 +113,22 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
             expDZ,
             funML,
             name = "DZ")
+
   multi <- mxFitFunctionMultigroup(c("MZ", "DZ"))
 
-  # Create Confidence Interval Objects
-  ciCor <- mxCI(c('MZ.corMZ', 'DZ.corDZ'))
-  ciThre <- mxCI(c('MZ.threMZ', 'DZ.threDZ'))
-
   # Build Saturated Model with Confidence Intervals
-  model_saturated <- mxModel("sat", pars, modelMZ, modelDZ, multi, ciCor, ciThre)
-  fit_saturated <- mxTryHard(model_saturated, intervals = TRUE)
+  model_saturated <- mxModel("sat", pars, modelMZ, modelDZ, multi)
+  fit_saturated <- mxTryHard(model_saturated)
 
   # RUN SUBMODELS
-  model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov" )
-  model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_fem", "beta_birth_year_first", "beta_birth_year_second"), free = FALSE, values = 0)
-  fit_no_cov    <- mxTryHard(model_no_cov)
+  if (!is_null(covs)) {
+
+    # Test covariates
+    model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov")
+    model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_", covs)), free = FALSE, values = 0)
+    fit_no_cov    <- mxTryHard(model_no_cov)
+
+  }
 
 
   # Constrain expected Thresholds to be equal across Twin Order
@@ -188,11 +166,12 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
   fitETOZ <- mxTryHard(modelETOZ)
 
   out <- list(sat = fit_saturated,
-              no_cov = fit_no_cov,
               ETO = fitETO,
               ETOZ = fitETOZ,
               trait = x$trait,
               response_type = x$response_type)
+
+  if (!is_null(covs)) out$no_cov <- fit_no_cov
 
   class(out) <- "saturated.binary"
 
@@ -202,8 +181,11 @@ fit_saturated.prep.uni.bin <- function(x, ...) {
 }
 
 
+
+
+
 #' @export
-fit_saturated.prep.uni.num <- function(x, ...) {
+fit_saturated.prep.uni.num <- function(x, covs, ...) {
 
   MZ <- x$MZ
   DZ <- x$DZ
@@ -213,31 +195,15 @@ fit_saturated.prep.uni.num <- function(x, ...) {
   selVars <- paste("X", c(rep(1, nv), rep(2, nv)), sep = "")
 
 
-  svBsex <- 1 # start value for regressions
-  svB_birth_year_first <- 0.1 # start value for regressions
-  svB_birth_year_second <- 0.1
+  svB <- 1 # start value for regressions
   svMe <- 1 # start value for means
   svVa <- .8 # start value for variance
   lbVa <- .0001
 
-  def_female_MZ1      <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Female1"), name = "def_female_MZ1")
-  def_female_MZ2      <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Female2"), name = "def_female_MZ2")
-  def_female_DZ1      <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Female1"), name = "def_female_DZ1")
-  def_female_DZ2      <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Female2"), name = "def_female_DZ2")
+  defs1 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "1"), name = "defs1")
+  defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
-  def_birth_year_first_MZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_first1"), name = "def_birth_year_first_MZ1")
-  def_birth_year_first_MZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_first2"), name = "def_birth_year_first_MZ2")
-  def_birth_year_first_DZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_first1"), name = "def_birth_year_first_DZ1")
-  def_birth_year_first_DZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_first2"), name = "def_birth_year_first_DZ2")
-
-  def_birth_year_second_MZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_second1"), name = "def_birth_year_second_MZ1")
-  def_birth_year_second_MZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("MZ.data.Birth_year_second2"), name = "def_birth_year_second_MZ2")
-  def_birth_year_second_DZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_second1"), name = "def_birth_year_second_DZ1")
-  def_birth_year_second_DZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = c("DZ.data.Birth_year_second2"), name = "def_birth_year_second_DZ2")
-
-  path_b_sex <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svBsex, label = "beta_fem", name = "bfem" )
-  path_b_birthyear_first  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_first, label = "beta_birth_year_first", name = "b_birth_year_first")
-  path_b_birthyear_second <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svB_birth_year_second, label = "beta_birth_year_second", name = "b_birth_year_second")
+  path_b  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_", covs), name = "b")
 
   # Create Algebra for expected Mean Matrices
   meanMZ1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svMe, labels = "mMZ1", name = "meanMZ1")
@@ -246,10 +212,8 @@ fit_saturated.prep.uni.num <- function(x, ...) {
   meanDZ2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = svMe, labels = "mDZ2", name = "meanDZ2")
 
   # Create Algebra for expected Mean & Threshold Matrices
-  expMeanMZ   <- mxAlgebra(expression = cbind(meanMZ1 + def_female_MZ1 %*% bfem + def_birth_year_first_MZ1 %*% b_birth_year_first + def_birth_year_second_MZ1 %*% b_birth_year_second,
-                                              meanMZ2 + def_female_MZ2 %*% bfem + def_birth_year_first_MZ2 %*% b_birth_year_first + def_birth_year_second_MZ2 %*% b_birth_year_second), name = "expMeanMZ")
-  expMeanDZ   <- mxAlgebra(expression = cbind(meanDZ1 + def_female_DZ1 %*% bfem + def_birth_year_first_DZ1 %*% b_birth_year_first + def_birth_year_second_DZ1 %*% b_birth_year_second,
-                                              meanDZ2 + def_female_DZ2 %*% bfem + def_birth_year_first_DZ2 %*% b_birth_year_first + def_birth_year_second_DZ2 %*% b_birth_year_second), name = "expMeanDZ")
+  expMeanMZ   <- mxAlgebra(expression = cbind(meanMZ1 + defs1 %*% b, meanMZ2 + defs2 %*% b), name = "expMeanMZ")
+  expMeanDZ   <- mxAlgebra(expression = cbind(meanDZ1 + defs1 %*% b, meanDZ2 + defs2 %*% b), name = "expMeanDZ")
 
   # Create Algebra for expected Variance/Covariance Matrices
   covMZ <- mxMatrix(
@@ -289,10 +253,8 @@ fit_saturated.prep.uni.num <- function(x, ...) {
 
   funML <- mxFitFunctionML()
 
-  pars <- list(path_b_sex, path_b_birthyear_first, path_b_birthyear_second, meanMZ1, meanMZ2, meanDZ1, meanDZ2)
-  defs <- list(def_female_MZ1, def_female_MZ2, def_female_DZ1, def_female_DZ2,
-               def_birth_year_first_MZ1, def_birth_year_first_MZ2, def_birth_year_first_DZ1, def_birth_year_first_DZ2,
-               def_birth_year_second_MZ1, def_birth_year_second_MZ2, def_birth_year_second_DZ1, def_birth_year_second_DZ2)
+  pars <- list(path_b, meanMZ1, meanMZ2, meanDZ1, meanDZ2)
+  defs <- list(defs1, defs2)
 
   # Create Model Objects for Multiple Groups
   modelMZ <- mxModel(pars, defs, covMZ, dataMZ, expMeanMZ, expMZ, funML, name = "MZ")
@@ -303,10 +265,15 @@ fit_saturated.prep.uni.num <- function(x, ...) {
   model_saturated <- mxModel("sat", modelMZ, modelDZ, multi)
   fit_saturated <- mxTryHard(model_saturated)
 
-  # model without covariates
-  model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov" )
-  model_no_cov  <- omxSetParameters(model_no_cov, label = c("beta_fem", "beta_birth_year_first", "beta_birth_year_second"), free = FALSE, values = 0)
-  fit_no_cov    <- mxTryHard(model_no_cov)
+  # RUN SUBMODELS
+  if (!is_null(covs)) {
+
+    # Test covariates
+    model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov")
+    model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_", covs)), free = FALSE, values = 0)
+    fit_no_cov    <- mxTryHard(model_no_cov)
+
+  }
 
 
   init_MZ <- mean(mxEval(c(mMZ1, mMZ2), fit_saturated))
@@ -344,13 +311,14 @@ fit_saturated.prep.uni.num <- function(x, ...) {
 
   out <- list(
     sat = fit_saturated,
-    no_cov = fit_no_cov,
     EMO = fitEMO,
     EMVO = fitEMVO,
     EMVOZ = fitEMVOZ,
     trait = x$trait,
     response_type = x$response_type
   )
+
+  if (!is_null(covs)) out$no_cov <- fit_no_cov
 
   class(out) <- "saturated.num"
 
@@ -368,6 +336,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
   ntv       <- nv * 2
   selVars   <- paste(vars, c(rep(1, nv), rep(2, nv)), sep="")
 
+  svB <- 20
   svTh      <- 0.8                       # start value for thresholds
   svCor     <- 0.5                       # start value for correlations
   lbCor     <- -0.99                     # lower bounds for correlations
@@ -380,8 +349,8 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
   defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
   # Regression parameters
-  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_m_", covs), name = "bm")
-  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_f_", covs), name = "bf")
+  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_m_", covs), name = "bm")
+  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_f_", covs), name = "bf")
 
 
   # Create Algebra for expected Mean & Threshold Matrices
@@ -532,9 +501,8 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
 
 
   # Set Starting Values
-  svB_birth_year_first <- 0.05 # start value for regressions
-  svB_birth_year_second <- 0.05
-  svMe <- 1
+  svB <- 20 # start value for regressions
+  svMe <- 5
   svVa      <- 0.8                       # start value for variance
   lbVa      <- 0.0001                    # start value for lower bounds
 
@@ -543,8 +511,8 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
   defs2 <- mxMatrix(type = "Full", nrow = 1, ncol = length(covs), free = FALSE, labels = paste0("data.", covs, "2"), name = "defs2")
 
   # Regression parameters
-  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_m_", covs), name = "bm")
-  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(0, length(covs)), label = paste0("beta_f_", covs), name = "bf")
+  path_bm  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_m_", covs), name = "bm")
+  path_bf  <- mxMatrix(type = "Full", nrow = length(covs), ncol = 1, free = TRUE, values = rep(svB, length(covs)), label = paste0("beta_f_", covs), name = "bf")
 
   # Create Algebra for expected Mean Matrices
   mean_mzf   <- mxMatrix( type="Full", nrow=1, ncol=ntv, free=TRUE, values=svMe, labels=c("mMZf1","mMZf2"), name="mean_mzf")
