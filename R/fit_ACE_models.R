@@ -97,8 +97,6 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 1
 
 
 
-
-
   if (constrained) {
 
     m <- umxACE(
@@ -150,9 +148,9 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 1
   } else {
 
 
-    fit <- mxTryHard(m, extraTries = extra_tries)
-    fit_AE <- mxTryHard(m_AE, extraTries = extra_tries)
-    fit_CE <- mxTryHard(m_CE, extraTries = extra_tries)
+    fit <- mxTryHard(m, exhaustive = TRUE, extraTries = extra_tries)
+    fit_AE <- mxTryHard(m_AE, exhaustive = TRUE, extraTries = extra_tries)
+    fit_CE <- mxTryHard(m_CE, exhaustive = TRUE, extraTries = extra_tries)
 
 
   }
