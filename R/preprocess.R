@@ -250,13 +250,16 @@ prep_5groups <- function(prep) {
 }
 
 #' @export
-prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) {
+prep_bivariate_data_non_expand <- function(db, traitX, traitY, covs = NULL, response_typeX, response_typeY, same_sex = TRUE) {
+
+
+  if (!is_null(covs)) covs_in_twin_frame <- paste0(covs, c(1, 2)) else covs_in_twin_frame <- NULL
 
   X_is_factor <- is.factor(db[[traitX]])
   Y_is_factor <- is.factor(db[[traitY]])
 
   db <- db %>%
-    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year)
+    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year, all_of(covs))
 
   birth_year_poly <- db %>%
     pull(b_year) %>%
@@ -271,8 +274,8 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
     filter(Zyg == "MZ") %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second), names_sep = "") %>%
-    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year")) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
     as_tibble()
 
   datDZ <- db %>%
@@ -283,12 +286,12 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
     } %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second), names_sep = "") %>%
-    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year")) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
     as_tibble()
 
 
-  if (X_is_factor) {
+  if (response_typeX == "binary") {
 
     datMZ <- datMZ %>%
       mutate(X1 = mxFactor(X1, levels = sort(unique(X1))),
@@ -301,7 +304,7 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
 
   }
 
-  if (Y_is_factor) {
+  if (response_typeY == "binary") {
 
     datMZ <- datMZ %>%
       mutate(Y1 = mxFactor(Y1, levels = sort(unique(Y1))),
@@ -331,7 +334,7 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, same_sex = TRUE) 
   datDZ <- datDZ %>% filter(!pairnnr %in% exclude_DZ)
 
 
-  out <- list(DZ = datDZ, MZ = datMZ, traitX = traitX, traitY = traitY)
+  out <- list(DZ = datDZ, MZ = datMZ, traitX = traitX, traitY = traitY, response_typeX = response_typeX, response_typeY = response_typeY)
   class(out) <- "prep.biv"
   out
 

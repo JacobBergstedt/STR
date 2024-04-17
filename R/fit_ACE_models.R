@@ -5,21 +5,21 @@
 
 fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa) {
 
-
   modelACErc <- mxModel(fitACEra, name = "ACE_5group_rc" )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VAms11"), free=FALSE, values=0 )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VCms11"), free=TRUE, values=0.01 )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VEf11","VEm11"), free=TRUE, values=svPe)
   fitACErc   <- mxTryHard(modelACErc)
 
-  # Run ACEq model - Quantitative non-scalar Sex Differences ACE model
-  modelACEq <- mxModel( fitACEra, name="ACE_5group_qa" )
+  # Run ACEq model - Quantitative non-scalar additive gen Sex Differences ACE model
+  modelACEq <- mxModel(fitACEra, name="ACE_5group_q" )
   modelACEq <- omxSetParameters(modelACEq, labels = c("VAms11"), free=FALSE, values=0)
   modelACEq <- omxSetParameters(modelACEq, labels = c("VEf11", "VEm11"), free =TRUE, values = svPe)
   fitACEq   <- mxTryHard(modelACEq)
 
+
   # Run ACE model - No Sex differences ACE model
-  modelACE  <- mxModel(fitACEq, name = "ACE_5group")
+  modelACE  <- mxModel(modelACEq, name = "ACE_5group")
   modelACE  <- omxSetParameters(modelACE, labels = c("VAf11", "VAm11"), free = TRUE, values = svPa, newlabels = 'VA11' )
   modelACE  <- omxSetParameters(modelACE, labels = c("VCf11", "VCm11"), free = TRUE, values = svPa, newlabels = 'VC11' )
   modelACE  <- omxSetParameters(modelACE, labels = c("VEf11", "VEm11"), free = TRUE, values = svPe, newlabels = 'VE11' )
@@ -41,15 +41,13 @@ fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa) {
 
   # Test Significance of Sources of Variance of ACEq model with Quantitative Sex differences
   # Run AEq model
-  modelAEq  <- mxModel(fitACEq, name="AE_5group_qa" )
+  modelAEq  <- mxModel(fitACEq, name="AE_5group_q")
   modelAEq  <- omxSetParameters(modelAEq, labels=c("VCf11","VCm11"), free=FALSE, values=0 )
   fitAEq    <- mxTryHard(modelAEq)
 
   # Run CEq model
-  modelCEq  <- mxModel( fitACEq, name="CE_5group_qa" )
+  modelCEq  <- mxModel(fitACEq, name="CE_5group_q")
   modelCEq  <- omxSetParameters( modelCEq, labels=c("VAf11","VAm11"), free=FALSE, values=0 )
-  modelCEq  <- omxSetParameters( modelCEq, labels=c("VCf11","VCm11"), free=TRUE, values=svPa )
-  modelCEq  <- omxSetParameters( modelCEq, labels=c("VEf11","VEm11"), free=TRUE, values=svPe )
   fitCEq    <- mxTryHard( modelCEq)
 
   # Test Significance of Sources of Variance of ACE model without Sex differences
@@ -75,8 +73,6 @@ fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa) {
     AE = fitAE,
     CE = fitCE
   )
-
-
 
 
 }
@@ -282,13 +278,8 @@ fit_ACE.prep.uni.5group.binary <- function(x, covs, ...) {
   modelDZo  <- mxModel( parsZo, defs, expMean_zo, covDZo, expCovDZo, data_dzo, expDZo, funML, name="DZo" )
   multi     <- mxFitFunctionMultigroup( c("MZf","DZf","MZm","DZm","DZo") )
 
-  # Create Algebra for Variance Components
-  rowUS     <- rep('US', nv)
-  colUS     <- rep(c('VAf','VCf','VEf','SAf','SCf','SEf','VAm','VCm','VEm','SAm','SCm','SEm','rg','rc'), each=nv)
-  estUS     <- mxAlgebra(expression= cbind(VAf,VCf,VEf,VAf/Vf,VCf/Vf,VEf/Vf,VAm+VAms,VCm+VCms,VEm,(VAm+VAms)/Vm,(VCm+VCms)/Vm,VEm/Vm,rg,rc), name="US", dimnames=list(rowUS, colUS))
-
   # Build Model with Confidence Intervals
-  modelACEra <- mxModel("ACE_5group_ra", parsZf, parsZm, parsZo, var1f, var1m, modelMZf, modelDZf, modelMZm, modelDZm, modelDZo, multi, estUS)
+  modelACEra <- mxModel("ACE_5group_ra", parsZf, parsZm, parsZo, var1f, var1m, modelMZf, modelDZf, modelMZm, modelDZm, modelDZo, multi)
 
   # RUN MODEL
 
@@ -443,25 +434,76 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, ...) {
 
 
 #' @export
-fit_ACE.prep.biv <- function(x, covs = c("Female", "Birth_year_first", "Birth_year_second")) {
+fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", extra_tries = 10) {
 
-  m <- umxACE(
+  any_binary_trait <- (x$response_typeX == "binary" | x$response_typeY == "binary")
+
+  ACE <- umxACE(
     name = "ACE_biv",
     selDVs = c("X", "Y"),
     opt = "NPSOL",
     selCovs = covs,
     sep = "",
+    type = type,
     dzData = as.data.frame(x$DZ),
     mzData = as.data.frame(x$MZ),
-    tryHard = "yes",
     addCI = FALSE,
     autoRun = FALSE
   )
 
-  ACE <- mxTryHard(m)
+  X_no_C <- umxModify(ACE, update = c("c_r2c1", "c_r1c1"),  name = "X_no_C", autoRun = FALSE)
+  Y_no_C <- umxModify(ACE, update = c("c_r2c1", "c_r2c2"), name = "Y_no_C", autoRun = FALSE)
 
-  out <- list(ACE = ACE,  traitX = x$traitX, traitY = x$traitY)
-  class(out) <- c("ACE.biv")
+  AE <- umxModify(ACE, update = c("c_r1c1", "c_r2c1", "c_r2c2"), name = "AE", autoRun = FALSE)
+
+  X_no_A <- umxModify(ACE, update = c("a_r2c1", "a_r1c1"), name = "X_no_A", autoRun = FALSE)
+  Y_no_A <- umxModify(ACE, update = c("a_r2c1", "a_r2c2"), name = "Y_no_A", autoRun = FALSE)
+
+  CE <- umxModify(ACE, update = c("a_r1c1", "a_r2c1", "a_r2c2"), name = "CE", autoRun = FALSE)
+
+  if (any_binary_trait) {
+
+    ACE <- mxTryHardOrdinal(ACE, extraTries = extra_tries)
+    X_no_C <- mxTryHardOrdinal(X_no_C, extraTries = extra_tries)
+    Y_no_C <- mxTryHardOrdinal(Y_no_C, extraTries = extra_tries)
+
+    AE <- mxTryHardOrdinal(AE, extraTries = extraTries)
+
+    X_no_A <- mxTryHardOrdinal(X_no_A, extraTries = extra_tries)
+    Y_no_A <- mxTryHardOrdinal(Y_no_A, extraTries = extra_tries)
+
+    CE <- mxTryHardOrdinal(CE, extraTries = extraTries)
+
+  } else {
+
+
+    ACE <- mxTryHard(ACE, exhaustive = TRUE, extraTries = extra_tries)
+    X_no_C <- mxTryHard(X_no_C, exhaustive = TRUE, extraTries = extra_tries)
+    Y_no_C <- mxTryHard(Y_no_C, exhaustive = TRUE,extraTries = extra_tries)
+
+    AE <- mxTryHard(AE, exhaustive = TRUE, extraTries = extra_tries)
+
+    X_no_A <- mxTryHard(X_no_A, exhaustive = TRUE, extraTries = extra_tries)
+    Y_no_A <- mxTryHard(Y_no_A, exhaustive = TRUE, extraTries = extra_tries)
+
+    CE <- mxTryHard(CE, exhaustive = TRUE, extraTries = extra_tries)
+
+
+
+  }
+
+
+  out <- list(ACE = ACE,
+              X_no_C = X_no_C,
+              Y_no_C = Y_no_C,
+              AE = AE,
+              X_no_A = X_no_A,
+              Y_no_A = Y_no_A,
+              CE = CE,
+              traitX = x$traitX,
+              traitY = x$traitY)
+
+  class(out) <- c("ACE.biv.chol")
   out
 
 
