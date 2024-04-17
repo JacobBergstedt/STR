@@ -151,7 +151,7 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same
     pivot_wider(names_from = Twin, values_from = c(X, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
     select(pairnnr, X1, X2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
     filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
-    filter(!is.na(X1), !is.na(X2)) %>%
+    filter(!(is.na(X1) & is.na(X2))) %>%
     as_tibble()
 
   datDZ <- db %>%
@@ -164,7 +164,7 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same
     pivot_wider(names_from = Twin, values_from = c(X, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
     select(pairnnr, X1, X2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
     filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
-    filter(!is.na(X1), !is.na(X2)) %>%
+    filter(!(is.na(X1) & is.na(X2))) %>%
     as_tibble()
 
 
