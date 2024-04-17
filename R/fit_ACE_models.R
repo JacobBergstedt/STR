@@ -92,11 +92,10 @@ fit_ACE <- function(x, ...) {
 
 
 # Univariate --------------------------------------------------------------
-
-
-
 #' @export
-fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
+fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 10) {
+
+
 
 
 
@@ -114,13 +113,12 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
       addCI = FALSE
     )
 
-    m <- mxTryHard(m)
 
     # AE Model
-    m_AE <- umxModify(m, update = "c_r1c1", name = "AE", tryHard = "yes")
+    m_AE <- umxModify(m, update = "c_r1c1", name = "AE", autoRun = FALSE)
 
     # CE Model
-    m_CE <- umxModify(m, update = "a_r1c1", name = "CE", tryHard = "yes")
+    m_CE <- umxModify(m, update = "a_r1c1", name = "CE", autoRun = FALSE)
 
 
   } else {
@@ -136,19 +134,30 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE) {
       opt = "NPSOL",
       addCI = FALSE)
 
-
-    m <- mxTryHard(m)
-
-
-
-
-    m_AE    <- umxModify(m, update = "C_r1c1", name = "AE", tryHard = "yes")
-    m_CE    <- umxModify(m, update = "A_r1c1", name = "CE", tryHard = "yes")
+    m_AE    <- umxModify(m, update = "C_r1c1", name = "AE", autoRun = FALSE)
+    m_CE    <- umxModify(m, update = "A_r1c1", name = "CE", autoRun = FALSE)
 
 
   }
 
-  out <- list(ACE = m, AE = m_AE, CE = m_CE, response_type = x$response_type, trait = x$trait, constrained = constrained)
+  if (x$response_type == "binary") {
+
+    fit <- mxTryHardOrdinal(m, extraTries = extra_tries)
+    fit_AE <- mxTryHardOrdinal(m_AE, extraTries = extra_tries)
+    fit_CE <- mxTryHardOrdinal(m_CE, extraTries = extra_tries)
+
+
+  } else {
+
+
+    fit <- mxTryHard(m, extraTries = extra_tries)
+    fit_AE <- mxTryHard(m_AE, extraTries = extra_tries)
+    fit_CE <- mxTryHard(m_CE, extraTries = extra_tries)
+
+
+  }
+
+  out <- list(ACE = fit, AE = fit_AE, CE = fit_CE, response_type = x$response_type, trait = x$trait, constrained = constrained)
   class(out) <- c("ACE.uni")
   out
 
