@@ -122,7 +122,9 @@ prep_uni_data <- function(db, db_cohort, trait, response_type, same_sex = TRUE) 
 #' @export
 prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same_sex = TRUE) {
 
-  if (!is_null(covs)) covs_in_twin_frame <- paste0(covs, c(1, 2)) else covs_in_twin_frame <- NULL
+  if (!is_null(covs)) {
+    covs_in_twin_frame <- map(covs, ~ paste0(., c(1, 2))) %>% unlist()
+  } else covs_in_twin_frame <- NULL
 
   db <- db %>%
     select(pairnnr, twinnr, all_of(trait), Female, Zyg, b_year, all_of(covs)) %>%
@@ -196,7 +198,9 @@ prep_5groups <- function(prep) {
 
 
   if (prep$same_sex) {stop("Doesn't make sense for same_sex = TRUE")}
-  if (!is.null(prep$covs)) covs <- paste0(prep$covs, c(1, 2)) else covs <- NULL
+  if (!is.null(prep$covs)) {
+    covs <- map(prep$covs, ~ paste0(., c(1, 2))) %>% unlist()
+  } else covs <- NULL
 
   mzmData <- prep$MZ %>%
     filter(Female1 == 0) %>%
