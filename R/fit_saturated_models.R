@@ -263,7 +263,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
 
   # Build Saturated Model with Confidence Intervals
   model_saturated <- mxModel("sat", modelMZ, modelDZ, multi)
-  fit_saturated <- mxTryHard(model_saturated, extraTries = extra_tries)
+  fit_saturated <- mxTryHard(model_saturated, exhaustive = TRUE, extraTries = extra_tries)
 
   # RUN SUBMODELS
   if (!is_null(covs)) {
@@ -271,7 +271,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
     # Test covariates
     model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov")
     model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_", covs)), free = FALSE, values = 0)
-    fit_no_cov    <- mxTryHard(model_no_cov, extraTries = extra_tries)
+    fit_no_cov    <- mxTryHard(model_no_cov, exhaustive = TRUE, extraTries = extra_tries)
 
   }
 
@@ -284,7 +284,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
     omxSetParameters(label = c("mMZ1", "mMZ2"), free = TRUE, values = svMe, newlabels = 'mMZ') %>%
     omxSetParameters(label = c("mDZ1", "mDZ2"), free = TRUE, values = svMe, newlabels = 'mDZ')
 
-  fitEMO <- mxTryHard(modelEMO, extraTries = extra_tries)
+  fitEMO <- mxTryHard(modelEMO, exhaustive = TRUE, extraTries = extra_tries)
 
 
   init_MZ <- mean(mxEval(c(vMZ1, vMZ2), fitEMO))
@@ -294,7 +294,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
     omxSetParameters(label = c("vMZ1", "vMZ2"), free = TRUE, values = init_MZ, newlabels = 'vMZ') %>%
     omxSetParameters(label = c("vDZ1", "vDZ2"), free = TRUE, values = init_DZ, newlabels = 'vDZ')
 
-  fitEMVO <- mxTryHard(modelEMVO, extraTries = extra_tries)
+  fitEMVO <- mxTryHard(modelEMVO, exhaustive = TRUE, extraTries = extra_tries)
 
 
   # Constrain expected Means and Variances to be equal across Twin Order and Zygosity
@@ -307,7 +307,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
     omxSetParameters(label = c("mMZ", "mDZ"), free = TRUE, values = init_m, newlabels = 'mZ') %>%
     omxSetParameters(label = c("vMZ", "vDZ"), free = TRUE, values = init_V, newlabels = 'vZ')
 
-  fitEMVOZ <- mxTryHard(modelEMVOZ, extraTries = extra_tries)
+  fitEMVOZ <- mxTryHard(modelEMVOZ, exhaustive = TRUE, extraTries = extra_tries)
 
   out <- list(
     sat = fit_saturated,
