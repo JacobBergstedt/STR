@@ -305,7 +305,7 @@ fit_ACE.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...) {
 
 
 #' @export
-fit_ACE.prep.uni.5group.num <- function(x, covs, ...) {
+fit_ACE.prep.uni.5group.num <- function(x, covs, response_type, extra_tries = 10, ...) {
 
   nv        <- 1                         # number of variables
   ntv       <- nv*2                      # number of total variables
@@ -426,7 +426,7 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, ...) {
 #
   # Run ACEra Model - Qualitative (Ra) & Quantative Sex Differences ACE model
   fitACEra  <- mxTryHard(modelACEra)
-  out <- fit_ACE_5group_sub_models(fitACEra, svPe = svPe, svPa = svPa)
+  out <- fit_ACE_5group_sub_models(fitACEra, svPe = svPe, svPa = svPa, response_type = x$response_type, extra_tries = extra_tries)
   out$response_type <- x$response_type
   out$trait <- x$trait
   class(out) <- "ACE.5group"
