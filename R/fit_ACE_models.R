@@ -1,65 +1,64 @@
 
-
-
 # Internal functions ------------------------------------------------------
 
-fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa) {
+fit_ACE_5group_sub_models <- function(fitACEra, svPe, svPa, response_type, extra_tries) {
+
 
   modelACErc <- mxModel(fitACEra, name = "ACE_5group_rc" )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VAms11"), free=FALSE, values=0 )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VCms11"), free=TRUE, values=0.01 )
   modelACErc <- omxSetParameters(modelACErc, labels=c("VEf11","VEm11"), free=TRUE, values=svPe)
-  fitACErc   <- mxTryHard(modelACErc)
+  fitACErc   <- if (response_type == "binary") mxTryHardOrdinal(modelACErc, extraTries = extra_tries) else mxTryHard(modelACErc, exhaustive = TRUE, extraTries = extra_tries)
 
   # Run ACEq model - Quantitative non-scalar additive gen Sex Differences ACE model
   modelACEq <- mxModel(fitACEra, name="ACE_5group_q" )
   modelACEq <- omxSetParameters(modelACEq, labels = c("VAms11"), free=FALSE, values=0)
   modelACEq <- omxSetParameters(modelACEq, labels = c("VEf11", "VEm11"), free =TRUE, values = svPe)
-  fitACEq   <- mxTryHard(modelACEq)
-
+  fitACEq   <- if (response_type == "binary") mxTryHardOrdinal(modelACEq, extraTries = extra_tries) else mxTryHard(modelACEq, exhaustive = TRUE, extraTries = extra_tries)
 
   # Run ACE model - No Sex differences ACE model
   modelACE  <- mxModel(modelACEq, name = "ACE_5group")
   modelACE  <- omxSetParameters(modelACE, labels = c("VAf11", "VAm11"), free = TRUE, values = svPa, newlabels = 'VA11' )
   modelACE  <- omxSetParameters(modelACE, labels = c("VCf11", "VCm11"), free = TRUE, values = svPa, newlabels = 'VC11' )
   modelACE  <- omxSetParameters(modelACE, labels = c("VEf11", "VEm11"), free = TRUE, values = svPe, newlabels = 'VE11' )
-  fitACE    <- mxTryHard(modelACE)
+  fitACE   <- if (response_type == "binary") mxTryHardOrdinal(modelACE, extraTries = extra_tries) else mxTryHard(modelACE, exhaustive = TRUE, extraTries = extra_tries)
 
   # Test Significance of Sources of Variance of ACEra/rc model with Qualitative and Quantitative Sex differences
   # Run AEra model
   modelAEra <- mxModel(fitACEra, name="AE_5group_ra")
   modelAEra <- omxSetParameters(modelAEra, labels=c("VCf11", "VCm11"), free = FALSE, values = 0)
-  fitAEra   <- mxTryHard(modelAEra)
+  fitAEra   <- if (response_type == "binary") mxTryHardOrdinal(modelAEra, extraTries = extra_tries) else mxTryHard(modelAEra, exhaustive = TRUE, extraTries = extra_tries)
 
   # Run CErc model
   modelCErc <- mxModel(fitACErc, name="CE_5group_rc" )
   modelCErc <- omxSetParameters( modelCErc, labels=c("VAf11","VAm11"), free=FALSE, values=0 )
   modelCErc <- omxSetParameters( modelCErc, labels=c("VCf11","VCm11"), free=TRUE, values=svPa )
   modelCErc <- omxSetParameters( modelCErc, labels=c("VEf11","VEm11"), free=TRUE, values=svPe )
-  fitCErc   <- mxTryHard(modelCErc)
-
+  fitCErc   <- if (response_type == "binary") mxTryHardOrdinal(modelCErc, extraTries = extra_tries) else mxTryHard(modelCErc, exhaustive = TRUE, extraTries = extra_tries)
 
   # Test Significance of Sources of Variance of ACEq model with Quantitative Sex differences
   # Run AEq model
   modelAEq  <- mxModel(fitACEq, name="AE_5group_q")
-  modelAEq  <- omxSetParameters(modelAEq, labels=c("VCf11","VCm11"), free=FALSE, values=0 )
-  fitAEq    <- mxTryHard(modelAEq)
+  modelAEq  <- omxSetParameters(modelAEq, labels=c("VCf11","VCm11"), free=FALSE, values = 0)
+  fitAEq   <- if (response_type == "binary") mxTryHardOrdinal(modelAEq, extraTries = extra_tries) else mxTryHard(modelAEq, exhaustive = TRUE, extraTries = extra_tries)
 
   # Run CEq model
   modelCEq  <- mxModel(fitACEq, name="CE_5group_q")
   modelCEq  <- omxSetParameters( modelCEq, labels=c("VAf11","VAm11"), free=FALSE, values=0 )
-  fitCEq    <- mxTryHard( modelCEq)
+  fitCEq   <- if (response_type == "binary") mxTryHardOrdinal(modelCEq, extraTries = extra_tries) else mxTryHard(modelCEq, exhaustive = TRUE, extraTries = extra_tries)
 
   # Test Significance of Sources of Variance of ACE model without Sex differences
   # Run AE model
   modelAE   <- mxModel( fitACE, name="AE_5group" )
   modelAE   <- omxSetParameters( modelAE, labels=c("VC11"), free=FALSE, values=0 )
-  fitAE     <- mxTryHard( modelAE)
+  fitAE   <- if (response_type == "binary") mxTryHardOrdinal(modelAE, extraTries = extra_tries) else mxTryHard(modelAE, exhaustive = TRUE, extraTries = extra_tries)
+
 
   # Run CE model
   modelCE   <- mxModel(fitACE, name="CE_5group" )
   modelCE   <- omxSetParameters(modelCE, labels=c("VA11"), free=FALSE, values=0)
-  fitCE     <- mxTryHard( modelCE)
+  fitCE   <- if (response_type == "binary") mxTryHardOrdinal(modelCE, extraTries = extra_tries) else mxTryHard(modelCE, exhaustive = TRUE, extraTries = extra_tries)
+
 
   list(
     ACEra = fitACEra,
@@ -168,7 +167,9 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 1
 
 
 #' @export
-fit_ACE.prep.uni.5group.binary <- function(x, covs, ...) {
+fit_ACE.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...) {
+
+
 
   nv        <- 1                         # number of variables
   ntv       <- nv*2                      # number of total variables
@@ -290,8 +291,8 @@ fit_ACE.prep.uni.5group.binary <- function(x, covs, ...) {
   # RUN MODEL
 
   # Run ACEra Model - Qualitative (Ra) & Quantative Sex Differences ACE model
-  fitACEra  <- mxTryHard(modelACEra)
-  out <- fit_ACE_5group_sub_models(fitACEra, svPe = svPe, svPa = svPa)
+  fitACEra  <- mxTryHardOrdinal(modelACEra, extraTries = extra_tries)
+  out <- fit_ACE_5group_sub_models(fitACEra, svPe = svPe, svPa = svPa, response_type = x$response_type, extra_tries = extra_tries)
   out$response_type <- x$response_type
   out$trait <- x$trait
   class(out) <- "ACE.5group"
