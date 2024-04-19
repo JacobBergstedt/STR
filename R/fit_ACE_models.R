@@ -147,7 +147,6 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 1
 
   } else {
 
-
     fit <- mxTryHard(m, exhaustive = TRUE, extraTries = extra_tries)
     fit_AE <- mxTryHard(m_AE, exhaustive = TRUE, extraTries = extra_tries)
     fit_CE <- mxTryHard(m_CE, exhaustive = TRUE, extraTries = extra_tries)
@@ -441,7 +440,7 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, ...) {
 
 
 #' @export
-fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", extra_tries = 10) {
+fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", extra_tries = 10, ...) {
 
   any_binary_trait <- (x$response_typeX == "binary" | x$response_typeY == "binary")
 
@@ -474,12 +473,12 @@ fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", extra_tries = 10) {
     X_no_C <- mxTryHardOrdinal(X_no_C, extraTries = extra_tries)
     Y_no_C <- mxTryHardOrdinal(Y_no_C, extraTries = extra_tries)
 
-    AE <- mxTryHardOrdinal(AE, extraTries = extraTries)
+    AE <- mxTryHardOrdinal(AE, extraTries = extra_tries)
 
     X_no_A <- mxTryHardOrdinal(X_no_A, extraTries = extra_tries)
     Y_no_A <- mxTryHardOrdinal(Y_no_A, extraTries = extra_tries)
 
-    CE <- mxTryHardOrdinal(CE, extraTries = extraTries)
+    CE <- mxTryHardOrdinal(CE, extraTries = extra_tries)
 
   } else {
 

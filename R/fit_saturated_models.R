@@ -9,7 +9,7 @@ fit_saturated <- function(x, ...) {
 
 
 #' @export
-fit_saturated.prep.uni.bin <- function(x, covs, ...) {
+fit_saturated.prep.uni.bin <- function(x, covs, extra_tries = 10, ...) {
 
   nv <- 1 # number of variables
   ntv <- nv * 2 # number of total variables
@@ -118,7 +118,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, ...) {
 
   # Build Saturated Model with Confidence Intervals
   model_saturated <- mxModel("sat", pars, modelMZ, modelDZ, multi)
-  fit_saturated <- mxTryHard(model_saturated)
+  fit_saturated <- mxTryHardOrdinal(model_saturated, extraTries = extra_tries)
 
   # RUN SUBMODELS
   if (!is_null(covs)) {
@@ -126,7 +126,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, ...) {
     # Test covariates
     model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov")
     model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_", covs)), free = FALSE, values = 0)
-    fit_no_cov    <- mxTryHard(model_no_cov)
+    fit_no_cov    <- mxTryHardOrdinal(model_no_cov, extraTries = extra_tries)
 
   }
 
@@ -149,7 +149,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, ...) {
       newlabels = 'tDZ'
     )
 
-  fitETO <- mxTryHard(modelETO)
+  fitETO <- mxTryHardOrdinal(modelETO, extraTries = extra_tries)
 
   # Constrain expected Thresholds to be equal across Twin Order and Zygosity
 
@@ -163,7 +163,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, ...) {
       newlabels = 'tZ'
     )
 
-  fitETOZ <- mxTryHard(modelETOZ)
+  fitETOZ <- mxTryHardOrdinal(modelETOZ, extraTries = extra_tries)
 
   out <- list(sat = fit_saturated,
               ETO = fitETO,
@@ -185,7 +185,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, ...) {
 
 
 #' @export
-fit_saturated.prep.uni.num <- function(x, covs, ...) {
+fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
 
   MZ <- x$MZ
   DZ <- x$DZ
@@ -263,7 +263,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
 
   # Build Saturated Model with Confidence Intervals
   model_saturated <- mxModel("sat", modelMZ, modelDZ, multi)
-  fit_saturated <- mxTryHard(model_saturated)
+  fit_saturated <- mxTryHard(model_saturated, extraTries = extra_tries)
 
   # RUN SUBMODELS
   if (!is_null(covs)) {
@@ -271,7 +271,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
     # Test covariates
     model_no_cov  <- mxModel(fit_saturated, name = "sat_no_cov")
     model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_", covs)), free = FALSE, values = 0)
-    fit_no_cov    <- mxTryHard(model_no_cov)
+    fit_no_cov    <- mxTryHard(model_no_cov, extraTries = extra_tries)
 
   }
 
@@ -284,7 +284,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
     omxSetParameters(label = c("mMZ1", "mMZ2"), free = TRUE, values = svMe, newlabels = 'mMZ') %>%
     omxSetParameters(label = c("mDZ1", "mDZ2"), free = TRUE, values = svMe, newlabels = 'mDZ')
 
-  fitEMO <- mxTryHard(modelEMO)
+  fitEMO <- mxTryHard(modelEMO, extraTries = extra_tries)
 
 
   init_MZ <- mean(mxEval(c(vMZ1, vMZ2), fitEMO))
@@ -294,7 +294,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
     omxSetParameters(label = c("vMZ1", "vMZ2"), free = TRUE, values = init_MZ, newlabels = 'vMZ') %>%
     omxSetParameters(label = c("vDZ1", "vDZ2"), free = TRUE, values = init_DZ, newlabels = 'vDZ')
 
-  fitEMVO <- mxTryHard(modelEMVO)
+  fitEMVO <- mxTryHard(modelEMVO, extraTries = extra_tries)
 
 
   # Constrain expected Means and Variances to be equal across Twin Order and Zygosity
@@ -307,7 +307,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
     omxSetParameters(label = c("mMZ", "mDZ"), free = TRUE, values = init_m, newlabels = 'mZ') %>%
     omxSetParameters(label = c("vMZ", "vDZ"), free = TRUE, values = init_V, newlabels = 'vZ')
 
-  fitEMVOZ <- mxTryHard(modelEMVOZ)
+  fitEMVOZ <- mxTryHard(modelEMVOZ, extraTries = extra_tries)
 
   out <- list(
     sat = fit_saturated,
@@ -328,7 +328,7 @@ fit_saturated.prep.uni.num <- function(x, covs, ...) {
 
 
 #' @export
-fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
+fit_saturated.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...) {
 
   # Select Variables for Analysis
   vars      <- "X"
@@ -418,7 +418,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
                         model_dzo,
                         multi)
 
-  fit_saturated <- mxTryHard(model_sat)
+  fit_saturated <- mxTryHardOrdinal(model_sat, extraTries = extra_tries)
 
   # RUN SUBMODELS
   if (!is_null(covs)) {
@@ -426,7 +426,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
     # Test covariates
     model_no_cov  <- mxModel(fit_saturated, name = "sat_5group_no_cov")
     model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
-    fit_no_cov    <- mxTryHard(model_no_cov)
+    fit_no_cov    <- mxTryHardOrdinal(model_no_cov, extraTries = extra_tries)
 
     # Test Sex Difference in Covariate
     model_no_sex_diff_cov <- mxModel(fit_saturated, name="sat_5group_no_sex_diff_cov")
@@ -436,7 +436,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
 
     }
 
-    fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
+    fit_no_sex_diff_cov   <- mxTryHardOrdinal(model_no_sex_diff_cov, extraTries = extra_tries)
 
   }
 
@@ -447,24 +447,24 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
   model_equal_order  <- omxSetParameters(model_equal_order, label=c("tdzf1","tdzf2"), free=TRUE, values=svTh, newlabels='tdzf')
   model_equal_order  <- omxSetParameters(model_equal_order, label=c("tmzm1","tmzm2"), free=TRUE, values=svTh, newlabels='tmzm')
   model_equal_order  <- omxSetParameters(model_equal_order, label=c("tdzm1","tdzm2"), free=TRUE, values=svTh, newlabels='tdzm')
-  fit_equal_order   <- mxTryHard(model_equal_order)
+  fit_equal_order   <- mxTryHardOrdinal(model_equal_order, extraTries = extra_tries)
 
   # Constrain expected Thresholds to be equal across twin order and zygosity
   model_equal_order_zyg  <- mxModel(fit_equal_order, name = "sat_5group_equal_order_zyg" )
   model_equal_order_zyg  <- omxSetParameters(model_equal_order_zyg, label = c("tmzf", "tdzf"), free = TRUE, values = svTh, newlabels = "tzf")
   model_equal_order_zyg  <- omxSetParameters(model_equal_order_zyg, label = c("tmzm", "tdzm"), free = TRUE, values = svTh, newlabels = "tzm")
-  fit_equal_order_zyg    <- mxTryHard(model_equal_order_zyg)
+  fit_equal_order_zyg    <- mxTryHardOrdinal(model_equal_order_zyg, extraTries = extra_tries)
 
   # Constrain expected Thresholds to be equal across twin order and zygosity and SS/OS
   model_equal_order_zyg_ss_os  <- mxModel(fit_equal_order_zyg, name="sat_5group_equal_order_zyg_ss_os")
   model_equal_order_zyg_ss_os  <- omxSetParameters(model_equal_order_zyg_ss_os, label=c("tzf","tdzo1"), free=TRUE, values=svTh, newlabels="tzf")
   model_equal_order_zyg_ss_os  <- omxSetParameters(model_equal_order_zyg_ss_os, label=c("tzm","tdzo2"), free=TRUE, values=svTh, newlabels="tzm")
-  fit_equal_order_zyg_ss_os    <- mxTryHard(model_equal_order_zyg_ss_os)
+  fit_equal_order_zyg_ss_os    <- mxTryHardOrdinal(model_equal_order_zyg_ss_os, extraTries = extra_tries)
 
   # Constrain expected Thresholds to be equal across twin order and zygosity and SS/OS and sex
   model_equal_order_zyg_ss_os_sex  <- mxModel(fit_equal_order_zyg_ss_os, name="sat_5group_equal_order_zyg_ss_os_sex" )
   model_equal_order_zyg_ss_os_sex  <- omxSetParameters(model_equal_order_zyg_ss_os_sex, label=c("tzf","tzm"), free = TRUE, values = svTh, newlabels = "tZ")
-  fit_equal_order_zyg_ss_os_sex    <- mxTryHard(model_equal_order_zyg_ss_os_sex)
+  fit_equal_order_zyg_ss_os_sex    <- mxTryHardOrdinal(model_equal_order_zyg_ss_os_sex, extraTries = extra_tries)
 
   out <- list(sat = fit_saturated,
               equal_order = fit_equal_order,
@@ -490,7 +490,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, ...) {
 
 
 #' @export
-fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
+fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 
 
   # Select Variables for Analysis
@@ -589,7 +589,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
                          model_dzo,
                          multi)
 
-  fit_sat <- mxTryHard(model_sat)
+  fit_sat <- mxTryHard(model_sat, exhaustive = TRUE, extraTries = extra_tries)
 
   if (!is_null(covs)) {
 
@@ -597,7 +597,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
     # Test covariates
     model_no_cov  <- mxModel(fit_sat, name = "sat_5group_no_cov")
     model_no_cov  <- omxSetParameters(model_no_cov, label = c(paste0("beta_m_", covs), paste0("beta_f_", covs)), free = FALSE, values = 0)
-    fit_no_cov    <- mxTryHard(model_no_cov)
+    fit_no_cov    <- mxTryHard(model_no_cov, exhaustive = TRUE, extraTries = extra_tries)
 
     # Test Sex Difference in Covariate
     model_no_sex_diff_cov <- mxModel(fit_sat, name="sat_5group_no_sex_diff_cov")
@@ -608,7 +608,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
 
     }
 
-    fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov)
+    fit_no_sex_diff_cov   <- mxTryHard(model_no_sex_diff_cov, exhaustive = TRUE, extraTries = extra_tries)
 
   }
 
@@ -618,7 +618,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
   model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mDZf1","mDZf2"), free=TRUE, values=svMe, newlabels='mDZf' )
   model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mMZm1","mMZm2"), free=TRUE, values=svMe, newlabels='mMZm' )
   model_equal_mean_order  <- omxSetParameters(model_equal_mean_order, label=c("mDZm1","mDZm2"), free=TRUE, values=svMe, newlabels='mDZm' )
-  fit_equal_mean_order    <- mxTryHard(model_equal_mean_order)
+  fit_equal_mean_order    <- mxTryHard(model_equal_mean_order, exhaustive = TRUE, extraTries = extra_tries)
 
   # Constrain expected Means and Variances to be equal across twin order
   model_equal_mean_var_order <- mxModel(fit_equal_mean_order, name="sat_5group_equal_mean_var_order" )
@@ -626,7 +626,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
   model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vDZf1","vDZf2"), free=TRUE, values=svVa, newlabels='vDZf')
   model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vMZm1","vMZm2"), free=TRUE, values=svVa, newlabels='vMZm')
   model_equal_mean_var_order <- omxSetParameters(model_equal_mean_var_order, label=c("vDZm1","vDZm2"), free=TRUE, values=svVa, newlabels='vDZm')
-  fit_equal_mean_var_order  <- mxTryHard(model_equal_mean_var_order)
+  fit_equal_mean_var_order  <- mxTryHard(model_equal_mean_var_order, exhaustive = TRUE, extraTries = extra_tries)
 
   # Constrain expected Means and Variances to be equal across twin order and zygosity
   model_equal_mean_var_order_zyg <- mxModel(fit_equal_mean_var_order, name="sat_5group_equal_mean_var_order_zyg" )
@@ -634,7 +634,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
   model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("vMZf","vDZf"), free=TRUE, values = svVa, newlabels='vZf')
   model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("mMZm","mDZm"), free=TRUE, values = svMe, newlabels='mZm')
   model_equal_mean_var_order_zyg <- omxSetParameters(model_equal_mean_var_order_zyg, label=c("vMZm","vDZm"), free=TRUE, values = svVa, newlabels='vZm')
-  fit_equal_mean_var_order_zyg  <- mxTryHard(model_equal_mean_var_order_zyg)
+  fit_equal_mean_var_order_zyg  <- mxTryHard(model_equal_mean_var_order_zyg, exhaustive = TRUE, extraTries = extra_tries)
 
   # Constrain expected Means and Variances to be equal across twin order and zygosity and SS/OS
   model_equal_mean_var_order_zyg_ss_os <- mxModel(fit_equal_mean_var_order_zyg, name="sat_5group_equal_mean_var_order_zyg_ss_os" )
@@ -642,13 +642,12 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, ...) {
   model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("vZf","vDZo1"), free=TRUE, values=svVa, newlabels='vZf')
   model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("mZm","mDZo2"), free=TRUE, values=svMe, newlabels='mZm')
   model_equal_mean_var_order_zyg_ss_os <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os, label=c("vZm","vDZo2"), free=TRUE, values=svVa, newlabels='vZm')
-  fit_equal_mean_var_order_zyg_ss_os   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os)
-
+  fit_equal_mean_var_order_zyg_ss_os   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os, exhaustive = TRUE, extraTries = extra_tries)
   # Constrain expected Means and Variances to be equal across twin order and zygosity and SS/OS and sex
   model_equal_mean_var_order_zyg_ss_os_sex <- mxModel(fit_equal_mean_var_order_zyg_ss_os, name = "sat_5group_equal_mean_var_order_zyg_ss_os_sex")
   model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("mZf","mZm"), free=TRUE, values=svMe, newlabels='mZ')
   model_equal_mean_var_order_zyg_ss_os_sex <- omxSetParameters(model_equal_mean_var_order_zyg_ss_os_sex, label=c("vZf","vZm"), free=TRUE, values=svVa, newlabels='vZ')
-  fit_equal_mean_var_order_zyg_ss_os_sex   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os_sex)
+  fit_equal_mean_var_order_zyg_ss_os_sex   <- mxTryHard(model_equal_mean_var_order_zyg_ss_os_sex, exhaustive = TRUE, extraTries = extra_tries)
 
 
   out <- list(sat = fit_sat,

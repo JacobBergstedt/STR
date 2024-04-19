@@ -39,9 +39,17 @@ compare <- function(x, ...) {
 #' @export
 compare.ACE.uni <- function(x, ...) {
 
-  bind_rows(compare_helper(x$ACE, x$AE),
-            compare_helper(x$ACE, x$CE))
+  out_init <- x[!names(x) %in% c("response_type", "trait", "constrained")] |>
+    map(mxCompare) |>
+    map_dfr(as_tibble)
 
+  out <- bind_rows(compare_internal(x$ACE, x$AE),
+                   compare_internal(x$ACE, x$CE)) |>
+    filter(!is.na(comparison))
+
+  bind_rows(out_init, out) |>
+    select(-(fit:SBchisq)) |>
+    mutate(Trait = x$trait, Response_type = x$response_type, Constrained = x$constrained)
 
 }
 
@@ -50,8 +58,8 @@ compare.ACE.uni <- function(x, ...) {
 #' @export
 compare.ADE.uni <- function(x, ...) {
 
-  bind_rows(compare_helper(x$ADE, x$AE),
-            compare_helper(x$ADE, x$DE))
+  bind_rows(compare_internal(x$ADE, x$AE),
+            compare_internal(x$ADE, x$DE))
 
 
 }
@@ -64,7 +72,11 @@ compare.ACE.5group <- function(x, ...) {
   # Test Significance of Sources of Variance of ACEra/rc model with Qualitative and Quantitative Sex differences
   # Run AEra model
 
-  bind_rows(compare_internal(x$ACEra, x$ACEq),
+  out_init <- x[!names(x) %in% c("response_type", "trait")] |>
+    map(mxCompare) |>
+    map_dfr(as_tibble)
+
+  out <- bind_rows(compare_internal(x$ACEra, x$ACEq),
             compare_internal(x$ACEq, x$ACE),
             compare_internal(x$ACErc, x$ACEq),
             compare_internal(x$ACEq, x$ACE),
@@ -74,7 +86,11 @@ compare.ACE.5group <- function(x, ...) {
             compare_internal(x$ACEq, x$CEq),
             compare_internal(x$ACE, x$AE),
             compare_internal(x$ACE, x$CE)) |>
-    mutate(Trait = x$trait, Response_type = x$response_type, Constrained = x$constrained)
+    filter(!is.na(comparison))
+
+  bind_rows(out_init, out) |>
+    select(-(fit:SBchisq)) |>
+    mutate(Trait = x$trait, Response_type = x$response_type)
 
 }
 

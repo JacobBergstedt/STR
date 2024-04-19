@@ -122,12 +122,13 @@ prep_uni_data <- function(db, db_cohort, trait, response_type, same_sex = TRUE) 
 #' @export
 prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same_sex = TRUE) {
 
+
   if (!is_null(covs)) {
     covs_in_twin_frame <- map(covs, ~ paste0(., c(1, 2))) %>% unlist()
   } else covs_in_twin_frame <- NULL
 
   db <- db %>%
-    select(pairnnr, twinnr, all_of(trait), Female, Zyg, b_year, all_of(covs)) %>%
+    select(pairnnr, twinnr, all_of(trait), Zyg, all_of(covs)) %>%
     rename(X = all_of(trait)) %>%
     group_by(pairnnr) %>%
     mutate(n_twins = n()) %>%
@@ -136,22 +137,25 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same
     select(-n_twins) %>%
     mutate(Twin = str_sub(twinnr, start = -1))
 
-  birth_year_poly <- db %>%
-    pull(b_year) %>%
-    scale(scale = FALSE) %>%
-    poly(degree = 2, raw = TRUE) %>%
-    as_tibble() %>%
-    rename(Birth_year_first = `1`, Birth_year_second = `2`)
+  # birth_year_poly <- db %>%
+  #   pull(b_year) %>%
+  #   scale(scale = FALSE) %>%
+  #   poly(degree = 2, raw = TRUE) %>%
+  #   as_tibble() %>%
+  #   rename(Birth_year_first = `1`, Birth_year_second = `2`)
 
-  db <- bind_cols(db, birth_year_poly)
+  # db <- bind_cols(db, birth_year_poly)
 
 
   datMZ <- db %>%
     filter(Zyg == "MZ") %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(names_from = Twin, values_from = c(X, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
-    select(pairnnr, X1, X2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
+    pivot_wider(id_cols = pairnnr,
+                names_from = Twin,
+                names_prefix = if_else(is_null(covs), "X", ""),
+                values_from = c(X, all_of(covs)), names_sep = "") %>%
+    select(pairnnr, X1, X2, all_of(covs_in_twin_frame)) %>%
     filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
     filter(!(is.na(X1) & is.na(X2))) %>%
     as_tibble()
@@ -163,8 +167,12 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same
     } %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(names_from = Twin, values_from = c(X, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
-    select(pairnnr, X1, X2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
+    pivot_wider(id_cols = pairnnr,
+                names_from = Twin,
+                names_prefix = if_else(is_null(covs), "X", ""),
+                values_from = c(X, all_of(covs)),
+                names_sep = "") %>%
+    select(pairnnr, X1, X2, all_of(covs_in_twin_frame)) %>%
     filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
     filter(!(is.na(X1) & is.na(X2))) %>%
     as_tibble()
@@ -196,34 +204,34 @@ prep_uni_data_non_expand <- function(db, trait, response_type, covs = NULL, same
 #' @export
 prep_5groups <- function(prep) {
 
-
-  if (prep$same_sex) {stop("Doesn't make sense for same_sex = TRUE")}
+  if (!"Female" %in% prep$covs) stop("Need information about sex")
+  if (prep$same_sex) stop("Doesn't make sense for same_sex = TRUE")
   if (!is.null(prep$covs)) {
     covs <- map(prep$covs, ~ paste0(., c(1, 2))) %>% unlist()
   } else covs <- NULL
 
   mzmData <- prep$MZ %>%
     filter(Female1 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covs))
+    select(pairnnr, X1, X2, all_of(covs))
 
   dzmData <- prep$DZ %>%
     filter(Female1 == 0, Female2 == 0) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covs))
+    select(pairnnr, X1, X2, all_of(covs))
 
   mzfData <- prep$MZ %>%
     filter(Female1 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covs))
+    select(pairnnr, X1, X2, all_of(covs))
 
   dzfData <- prep$DZ %>%
     filter(Female1 == 1, Female2 == 1) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covs))
+    select(pairnnr, X1, X2, all_of(covs))
 
   dzoData <- prep$DZ %>%
     filter(Female1 != Female2) %>%
     mutate(Xm = if_else(Female1 == 0, X1, X2), Xf = if_else(Female1 == 1, X1, X2)) %>%
     select(-X1, -X2) %>%
     rename(X1 = Xf, X2 = Xm) %>%
-    select(pairnnr, X1, X2, contains("Birth_year"), all_of(covs))
+    select(pairnnr, X1, X2, all_of(covs))
 
   if (prep$response_type == "binary") {
 
@@ -258,30 +266,32 @@ prep_5groups <- function(prep) {
 #' @export
 prep_bivariate_data_non_expand <- function(db, traitX, traitY, covs = NULL, response_typeX, response_typeY, same_sex = TRUE) {
 
-
-  if (!is_null(covs)) covs_in_twin_frame <- paste0(covs, c(1, 2)) else covs_in_twin_frame <- NULL
+  if (!is_null(covs)) {
+    covs_in_twin_frame <- map(covs, ~ paste0(., c(1, 2))) %>% unlist()
+  } else covs_in_twin_frame <- NULL
 
   X_is_factor <- is.factor(db[[traitX]])
   Y_is_factor <- is.factor(db[[traitY]])
 
   db <- db %>%
-    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, Female, b_year, all_of(covs))
+    select(pairnnr, twinnr, X = all_of(traitX), Y = all_of(traitY), Zyg, all_of(covs))
 
-  birth_year_poly <- db %>%
-    pull(b_year) %>%
-    scale() %>%
-    poly(degree = 2, raw = TRUE) %>%
-    as_tibble() %>%
-    rename(Birth_year_first = `1`, Birth_year_second = `2`)
+  # birth_year_poly <- db %>%
+  #   pull(b_year) %>%
+  #   scale() %>%
+  #   poly(degree = 2, raw = TRUE) %>%
+  #   as_tibble() %>%
+  #   rename(Birth_year_first = `1`, Birth_year_second = `2`)
 
-  db <- bind_cols(db, birth_year_poly)
+  # db <- bind_cols(db, birth_year_poly)
 
   datMZ <- db %>%
     filter(Zyg == "MZ") %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
-    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, all_of(covs)), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, all_of(covs_in_twin_frame)) %>%
+    filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
     as_tibble()
 
   datDZ <- db %>%
@@ -292,8 +302,9 @@ prep_bivariate_data_non_expand <- function(db, traitX, traitY, covs = NULL, resp
     } %>%
     mutate(Twin = str_sub(twinnr, start = -1)) %>%
     select(-Zyg, -twinnr) %>%
-    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, Female, Birth_year_first, Birth_year_second, all_of(covs)), names_sep = "") %>%
-    select(pairnnr, X1, X2, Y1, Y2, Female1, Female2, contains("Birth_year"), all_of(covs_in_twin_frame)) %>%
+    pivot_wider(id_cols = pairnnr, names_from = Twin, values_from = c(X, Y, all_of(covs)), names_sep = "") %>%
+    select(pairnnr, X1, X2, Y1, Y2, all_of(covs_in_twin_frame)) %>%
+    filter(if_all(all_of(covs_in_twin_frame), ~ !is.na(.))) |>
     as_tibble()
 
 
