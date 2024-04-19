@@ -429,7 +429,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...)
     fit_no_cov    <- mxTryHardOrdinal(model_no_cov, extraTries = extra_tries)
 
     # Test Sex Difference in Covariate
-    model_no_sex_diff_cov <- mxModel(fit_saturated, name="sat_5group_no_sex_diff_cov")
+    model_no_sex_diff_cov <- mxModel(fit_saturated, name = "sat_5group_no_sex_diff_cov")
     for (cov in covs) {
 
       model_no_sex_diff_cov <- omxSetParameters(model_no_sex_diff_cov, label = c(paste0("beta_m_", cov), paste0("beta_f_", cov)), free = TRUE, values = 0, newlabels = paste0("beta_", cov))
