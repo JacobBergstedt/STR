@@ -148,11 +148,11 @@ compare.saturated.binary <- function(x) {
 
   out <- bind_rows(out1, out2) %>%
     as_tibble() %>%
-    mutate(Trait = x$trait, Response_type = x$response_type) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) |>
+    mutate(Trait = x$trait, Response_type = x$response_type)
 
 
 
@@ -177,11 +177,11 @@ compare.saturated.num <- function(x) {
 
   out <- bind_rows(out1, out2, out3) %>%
     as_tibble() %>%
-    mutate(Trait = x$trait, Response_type = x$response_type) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) %>%
+    mutate(Trait = x$trait, Response_type = x$response_type)
 
 
 
@@ -212,11 +212,11 @@ compare.saturated.5group.binary <- function(x) {
 
   out <- bind_rows(out1, out2, out3, out4) %>%
     as_tibble() %>%
-    mutate(Trait = x$trait, Response_type = x$response_type) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) |>
+    mutate(Trait = x$trait, Response_type = x$response_type)
 
 
 }
@@ -244,13 +244,12 @@ compare.saturated.5group.num <- function(x) {
   out5 <- mxCompare(x$equal_mean_var_order_zyg_ss_os, x$equal_mean_var_order_zyg_ss_os_sex) %>%
     as_tibble()
 
-
   out <- bind_rows(out1, out2, out3, out4, out5) %>%
-    mutate(Trait = x$trait, Response_type = x$response_type) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) |>
+    mutate(Trait = x$trait, Response_type = x$response_type)
 
 
 }
@@ -277,11 +276,11 @@ compare.ACE.biv.chol <- function(x, ...) {
 
   out <- bind_rows(out1, out2, out3, out4, out5, out6) %>%
     select(-(fit:SBchisq)) %>%
-    mutate(Trait = x$trait, Response_type = x$response_type) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) |>
+    mutate(TraitX = x$traitX, TraitY = x$traitY)
 
 
 }
