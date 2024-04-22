@@ -289,6 +289,7 @@ get_estimates.ACE.5group <- function(x, ...) {
 
     model <- m$name
 
+
     if (!model %in% c("ACE_5group", "CE_5group", "AE_5group")) {
 
       var_comp_A_fem <- as.numeric(mxEval(VAf11, m))
@@ -361,7 +362,7 @@ get_estimates.ACE.5group <- function(x, ...) {
 
       }
 
-    } else if (model %in% c("ACE_5group", "CE_5group", "AE_5group")) {
+    } else  {
 
       # Variance components
       A <- as.numeric(mxEval(VA11, m))
@@ -391,6 +392,8 @@ get_estimates.ACE.5group <- function(x, ...) {
 
     }
 
+
+    res
 
 
   }

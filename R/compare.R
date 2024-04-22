@@ -38,7 +38,7 @@ compare_univariate <- function(m) {
 
     mxCompare(m)
 
-  }  else NULL
+  } else NULL
 
 
 }
