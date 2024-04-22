@@ -170,7 +170,6 @@ fit_ACE.prep.uni <- function(x, covs = NULL, constrained = TRUE, extra_tries = 1
 fit_ACE.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...) {
 
 
-
   nv        <- 1                         # number of variables
   ntv       <- nv*2                      # number of total variables
   selVars   <- paste("X", c(rep(1, nv), rep(2, nv)),sep="")
@@ -257,11 +256,11 @@ fit_ACE.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...) {
 
 
   # Create data objects
-  data_mzf <- mxData(observed = x$mzf, type = "raw")
-  data_mzm <- mxData(observed = x$mzm, type = "raw")
-  data_dzf <- mxData(observed = x$dzf, type = "raw")
-  data_dzm <- mxData(observed = x$dzm, type = "raw")
-  data_dzo <- mxData(observed = x$dzo, type = "raw")
+  data_mzf <- mxData(observed = as.data.frame(x$mzf), type = "raw")
+  data_mzm <- mxData(observed = as.data.frame(x$mzm), type = "raw")
+  data_dzf <- mxData(observed = as.data.frame(x$dzf), type = "raw")
+  data_dzm <- mxData(observed = as.data.frame(x$dzm), type = "raw")
+  data_dzo <- mxData(observed = as.data.frame(x$dzo), type = "raw")
 
   # Create Expectation Objects for Multiple Groups
   expMZf    <- mxExpectationNormal( covariance="expCovMZf", means="expMean_zf", dimnames=selVars, thresholds="threGf" )
@@ -387,11 +386,11 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, response_type, extra_tries = 10
   expCovDZo <- mxAlgebra( expression= rbind( cbind(Vf, cDZo), cbind(t(cDZo), Vm)), name="expCovDZo" )
 
   # Create Data Objects for Multiple Groups
-  dataMZf   <- mxData(observed = x$mzf, type = "raw")
-  dataDZf   <- mxData(observed = x$dzf, type = "raw")
-  dataMZm   <- mxData(observed = x$mzm, type = "raw")
-  dataDZm   <- mxData(observed = x$dzm, type = "raw")
-  dataDZo   <- mxData(observed = x$dzo, type = "raw")
+  dataMZf   <- mxData(observed = as.data.frame(x$mzf), type = "raw")
+  dataDZf   <- mxData(observed = as.data.frame(x$dzf), type = "raw")
+  dataMZm   <- mxData(observed = as.data.frame(x$mzm), type = "raw")
+  dataDZm   <- mxData(observed = as.data.frame(x$dzm), type = "raw")
+  dataDZo   <- mxData(observed = as.data.frame(x$dzo), type = "raw")
 
   # Create Expectation Objects for Multiple Groups
   expMZf    <- mxExpectationNormal(covariance="expCovMZf", means="expMean_zf", dimnames = selVars)

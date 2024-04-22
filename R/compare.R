@@ -24,7 +24,8 @@ compare_internal <- function(m1, m2) {
       select(-(fit:SBchisq))
 
 
-  }
+  } else NULL
+
 
 }
 
@@ -37,7 +38,7 @@ compare_univariate <- function(m) {
 
     mxCompare(m)
 
-  }
+  }  else NULL
 
 
 }
@@ -95,15 +96,14 @@ compare.ACE.5group <- function(x, ...) {
     map_dfr(as_tibble)
 
   out <- bind_rows(compare_internal(x$ACEra, x$ACEq),
-            compare_internal(x$ACEq, x$ACE),
-            compare_internal(x$ACErc, x$ACEq),
-            compare_internal(x$ACEq, x$ACE),
-            compare_internal(x$ACEra, x$AEra),
-            compare_internal(x$ACErc, x$CErc),
-            compare_internal(x$ACEq, x$AEq),
-            compare_internal(x$ACEq, x$CEq),
-            compare_internal(x$ACE, x$AE),
-            compare_internal(x$ACE, x$CE)) |>
+                   compare_internal(x$ACEq, x$ACE),
+                   compare_internal(x$ACErc, x$ACEq),
+                   compare_internal(x$ACEra, x$AEra),
+                   compare_internal(x$ACErc, x$CErc),
+                   compare_internal(x$ACEq, x$AEq),
+                   compare_internal(x$ACEq, x$CEq),
+                   compare_internal(x$ACE, x$AE),
+                   compare_internal(x$ACE, x$CE)) |>
     filter(!is.na(comparison))
 
   bind_rows(out_init, out) |>

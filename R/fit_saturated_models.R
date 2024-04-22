@@ -65,8 +65,8 @@ fit_saturated.prep.uni.bin <- function(x, covs, extra_tries = 10, ...) {
     )
 
   # Create Data Objects for Multiple Groups
-  dataMZ <- mxData(observed = x$MZ, type = "raw")
-  dataDZ <- mxData(observed = x$DZ, type = "raw")
+  dataMZ <- mxData(observed = as.data.frame(x$MZ), type = "raw")
+  dataDZ <- mxData(observed = as.data.frame(x$DZ), type = "raw")
 
   # Create Expectation Objects for Multiple Groups
   expMZ <-
@@ -239,8 +239,8 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
   )
 
   # Create Data Objects for Multiple Groups
-  dataMZ <- mxData(observed = MZ, type = "raw")
-  dataDZ <- mxData(observed = DZ, type = "raw")
+  dataMZ <- mxData(observed = as.data.frame(MZ), type = "raw")
+  dataDZ <- mxData(observed = as.data.frame(DZ), type = "raw")
 
   # Create Expectation Objects for Multiple Groups
   expMZ <- mxExpectationNormal(covariance = "covMZ",
@@ -384,11 +384,11 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...)
   cor_dzo    <- mxMatrix(type = "Stand", nrow = 2, ncol = 2, free = TRUE, values = svCor, lbound = lbCor, ubound = ubCor, labels = "r_dzo_21", name = "cor_dzo")
 
   # Create data objects
-  data_mzf <- mxData(observed = x$mzf, type = "raw")
-  data_mzm <- mxData(observed = x$mzm, type = "raw")
-  data_dzf <- mxData(observed = x$dzf, type = "raw")
-  data_dzm <- mxData(observed = x$dzm, type = "raw")
-  data_dzo <- mxData(observed = x$dzo, type = "raw")
+  data_mzf <- mxData(observed = as.data.frame(x$mzf), type = "raw")
+  data_mzm <- mxData(observed = as.data.frame(x$mzm), type = "raw")
+  data_dzf <- mxData(observed = as.data.frame(x$dzf), type = "raw")
+  data_dzm <- mxData(observed = as.data.frame(x$dzm), type = "raw")
+  data_dzo <- mxData(observed = as.data.frame(x$dzo), type = "raw")
 
   # Create expectation objects
   exp_mzf    <- mxExpectationNormal(covariance = "cor_mzf", means = "expMean_zf", dimnames = selVars, thresholds = "thre_mzf" )
@@ -554,11 +554,11 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
   cor_dzo    <- mxAlgebra(solve(sqrt(I * cov_dzo)) %&% cov_dzo, name = "cor_dzo")
 
   # Create data objects
-  data_mzf <- mxData(observed = x$mzf, type = "raw")
-  data_dzf <- mxData(observed = x$dzf, type = "raw")
-  data_mzm <- mxData(observed = x$mzm, type = "raw")
-  data_dzm <- mxData(observed = x$dzm, type = "raw")
-  data_dzo <- mxData(observed = x$dzo, type = "raw")
+  data_mzf <- mxData(observed = as.data.frame(x$mzf), type = "raw")
+  data_dzf <- mxData(observed = as.data.frame(x$dzf), type = "raw")
+  data_mzm <- mxData(observed = as.data.frame(x$mzm), type = "raw")
+  data_dzm <- mxData(observed = as.data.frame(x$dzm), type = "raw")
+  data_dzo <- mxData(observed = as.data.frame(x$dzo), type = "raw")
 
   # Create expectation objects
   exp_mzf    <- mxExpectationNormal(covariance = "cov_mzf", means = "expMean_mzf", dimnames = selVars)
