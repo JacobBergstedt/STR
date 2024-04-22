@@ -28,6 +28,24 @@ compare_internal <- function(m1, m2) {
 
 }
 
+
+compare_univariate <- function(m) {
+
+
+  if (grepl("OK", summary(m)$statusCode)) {
+
+
+    mxCompare(m)
+
+  }
+
+
+}
+
+
+
+
+
 #' @export
 compare <- function(x, ...) {
 
@@ -73,7 +91,7 @@ compare.ACE.5group <- function(x, ...) {
   # Run AEra model
 
   out_init <- x[!names(x) %in% c("response_type", "trait")] |>
-    map(mxCompare) |>
+    map(compare_univariate) |>
     map_dfr(as_tibble)
 
   out <- bind_rows(compare_internal(x$ACEra, x$ACEq),
