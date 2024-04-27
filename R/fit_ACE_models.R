@@ -440,14 +440,15 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, response_type, extra_tries = 10
 
 
 #' @export
-fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", extra_tries = 10, ...) {
+fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", extra_tries = 10, ...) {
+
 
   any_binary_trait <- (x$response_typeX == "binary" | x$response_typeY == "binary")
 
   ACE <- umxACE(
     name = "ACE_biv",
     selDVs = c("X", "Y"),
-    opt = "NPSOL",
+    opt = solver,
     selCovs = covs,
     sep = "",
     type = type,
