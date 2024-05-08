@@ -20,6 +20,7 @@ get_estimates.ACE.uni <- function(x, ...) {
 
   extract_from_model <- function(m) {
 
+
     model = m$name
 
     if (model == "ACE") {
@@ -36,8 +37,6 @@ get_estimates.ACE.uni <- function(x, ...) {
 
       # Heritability
       h2 <- as.numeric(mxEval(top.A / top.Vtot, m))
-
-
       h2_SD <- try_or_NA(as.numeric(mxSE(top.A / top.Vtot, m)))
       c2 <- as.numeric(mxEval(top.C / top.Vtot, m))
       c2_SD <- try_or_NA(as.numeric(mxSE(top.C / top.Vtot, m)))
@@ -108,7 +107,6 @@ get_estimates.ACE.uni <- function(x, ...) {
   out_info <- tibble(Trait = x$trait,
                      Response_type = x$response_type,
                      Constrained = x$constrained)
-
 
   out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
     map_dfr(extract_from_model)
@@ -412,4 +410,181 @@ get_estimates.ACE.5group <- function(x, ...) {
 
 }
 
+
+
+# Get estimates from saturated model --------------------------------------
+#' @export
+get_estimates.saturated.bin <- function(x, ...) {
+
+
+
+
+  extract_from_model <- function(m) {
+
+    model <- m$name
+
+    # Twin correlations
+    rMZ <- as.numeric(mxEval(rMZ, m))
+    rDZ <- as.numeric(mxEval(rDZ, m))
+
+
+    rMZ_SD <- try_or_NA(as.numeric(mxSE(rMZ, m)))
+    rDZ_SD <- try_or_NA(as.numeric(mxSE(rDZ, m)))
+
+    res <- tibble(Param = c("rMZ", "rDZ"),
+                  Value = c(rMZ, rDZ),
+                  SD = c(rMZ_SD, rDZ_SD),
+                  model = model)
+
+
+  }
+
+
+
+
+
+  out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
+
+  out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
+
+
+
+
+
+
+
+}
+
+
+#' @export
+get_estimates.saturated.num <- function(x, ...) {
+
+
+
+
+  extract_from_model <- function(m) {
+
+    model <- m$name
+
+    # Twin correlations
+    rMZ <- as.numeric(mxEval(cMZ21, m))
+    rDZ <- as.numeric(mxEval(cDZ21, m))
+
+
+    rMZ_SD <- try_or_NA(as.numeric(mxSE(cMZ21, m)))
+    rDZ_SD <- try_or_NA(as.numeric(mxSE(cDZ21, m)))
+
+    res <- tibble(Param = c("rMZ", "rDZ"),
+                  Value = c(rMZ, rDZ),
+                  SD = c(rMZ_SD, rDZ_SD),
+                  model = model)
+
+
+  }
+
+
+
+
+
+  out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
+
+  out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
+
+}
+
+
+
+
+#' @export
+get_estimates.saturated.5group.num <- function(x, ...) {
+
+
+
+
+  extract_from_model <- function(m) {
+
+    model <- m$name
+
+    # Twin correlations
+    rMZf <- as.numeric(mxEval(cMZf21, m))
+    rDZf <- as.numeric(mxEval(cDZf21, m))
+    rMZm <- as.numeric(mxEval(cMZm21, m))
+    rDZm <- as.numeric(mxEval(cDZm21, m))
+    rDZo <- as.numeric(mxEval(cDZo21, m))
+
+    rMZf_SD <- try_or_NA(as.numeric(mxSE(cMZf21, m)))
+    rDZf_SD <- try_or_NA(as.numeric(mxSE(cDZf21, m)))
+    rMZm_SD <- try_or_NA(as.numeric(mxSE(cMZm21, m)))
+    rDZm_SD <- try_or_NA(as.numeric(mxSE(cDZm21, m)))
+    rDZo_SD <- try_or_NA(as.numeric(mxSE(cDZo21, m)))
+
+    tibble(Param = c("rMZf", "rDZf", "rMZm", "rDZm", "rDZo"),
+           Value = c(rMZf, rDZf, rMZm, rDZm, rDZo),
+           SD = c(rMZf_SD, rDZf_SD, rMZm_SD, rDZm_SD, rDZo_SD),
+           model = model)
+
+
+  }
+
+  out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
+
+  out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
+
+}
+
+
+#' @export
+get_estimates.saturated.5group.binary <- function(x, ...) {
+
+
+  extract_from_model <- function(m) {
+
+    model <- m$name
+
+    # Twin correlations
+    rMZf <- as.numeric(mxEval(r_mzf_21, m))
+    rDZf <- as.numeric(mxEval(r_dzf_21, m))
+    rMZm <- as.numeric(mxEval(r_mzm_21, m))
+    rDZm <- as.numeric(mxEval(r_dzm_21, m))
+    rDZo <- as.numeric(mxEval(r_dzo_21, m))
+
+    rMZf_SD <- try_or_NA(as.numeric(mxSE(r_mzf_21, m)))
+    rDZf_SD <- try_or_NA(as.numeric(mxSE(r_dzf_21, m)))
+    rMZm_SD <- try_or_NA(as.numeric(mxSE(r_mzm_21, m)))
+    rDZm_SD <- try_or_NA(as.numeric(mxSE(r_dzm_21, m)))
+    rDZo_SD <- try_or_NA(as.numeric(mxSE(r_dzo_21, m)))
+
+    tibble(Param = c("rMZf", "rDZf", "rMZm", "rDZm", "rDZo"),
+           Value = c(rMZf, rDZf, rMZm, rDZm, rDZo),
+           SD = c(rMZf_SD, rDZf_SD, rMZm_SD, rDZm_SD, rDZo_SD),
+           model = model)
+
+
+  }
+
+  out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
+
+  out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    map_dfr(extract_from_model)
+
+  out <- bind_cols(out, out_info)
+  out
+
+
+}
 

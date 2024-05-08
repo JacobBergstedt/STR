@@ -173,7 +173,7 @@ fit_saturated.prep.uni.bin <- function(x, covs, extra_tries = 10, ...) {
 
   if (!is_null(covs)) out$no_cov <- fit_no_cov
 
-  class(out) <- "saturated.binary"
+  class(out) <- c("saturated.binary", "saturated")
 
   out
 
@@ -320,8 +320,7 @@ fit_saturated.prep.uni.num <- function(x, covs, extra_tries = 10,...) {
 
   if (!is_null(covs)) out$no_cov <- fit_no_cov
 
-  class(out) <- "saturated.num"
-
+  class(out) <- c("saturated.num", "saturated")
   out
 
 }
@@ -481,7 +480,7 @@ fit_saturated.prep.uni.5group.binary <- function(x, covs, extra_tries = 10, ...)
 
   }
 
-  class(out) <- "saturated.5group.binary"
+  class(out) <- c("saturated.5group.binary", "saturated.5group")
   out
 
 
@@ -667,10 +666,14 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 
   }
 
-  class(out) <- "saturated.5group.num"
+  class(out) <- c("saturated.5group.num", "saturated.5group")
   out
 
 
 }
+
+
+
+
 
 
