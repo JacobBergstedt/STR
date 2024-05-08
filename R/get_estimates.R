@@ -414,7 +414,7 @@ get_estimates.ACE.5group <- function(x, ...) {
 
 # Get estimates from saturated model --------------------------------------
 #' @export
-get_estimates.saturated.bin <- function(x, ...) {
+get_estimates.saturated.binary <- function(x, ...) {
 
 
 
