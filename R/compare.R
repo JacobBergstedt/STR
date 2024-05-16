@@ -103,10 +103,13 @@ compare.ACE.5group <- function(x, ...) {
                    compare_internal(x$ACE, x$CE))
 
   if (!is_empty(out)) out <- filter(out, !is.na(comparison))
+  if (is_empty(out) & is_empty(out_init)) NULL else {
 
-  bind_rows(out_init, out) |>
-    select(-(fit:SBchisq)) |>
-    mutate(Trait = x$trait, Response_type = x$response_type)
+    bind_rows(out_init, out) |>
+      select(-(fit:SBchisq)) |>
+      mutate(Trait = x$trait, Response_type = x$response_type)
+
+  }
 
 }
 
