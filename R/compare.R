@@ -100,7 +100,9 @@ compare.ACE.5group <- function(x, ...) {
                    compare_internal(x$ACEq, x$AEq),
                    compare_internal(x$ACEq, x$CEq),
                    compare_internal(x$ACE, x$AE),
-                   compare_internal(x$ACE, x$CE))
+                   compare_internal(x$ACE, x$CE),
+                   compare_internal(x$AEq, x$AE),
+                   compare_internal(x$CEq, x$CE))
 
   if (!is_empty(out)) out <- filter(out, !is.na(comparison))
   if (is_empty(out) & is_empty(out_init)) NULL else {
