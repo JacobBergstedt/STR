@@ -189,6 +189,17 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
 
     model <- m$name
 
+    cov <- mxEval(top.Vtot, m)[2, 1]
+    cov_SD <- try_or_NA(mxSE(top.Vtot, m)[2, 1])
+
+    covA <- mxEval(top.A, m)[2, 1]
+    covA_SD <- try_or_NA(mxSE(top.A, m)[2, 1])
+
+    covC <- mxEval(top.C, m)[2, 1]
+    covC_SD <- try_or_NA(mxSE(top.C, m)[2, 1])
+
+    covE <- mxEval(top.E, m)[2, 1]
+    covE_SD <- try_or_NA(mxSE(top.E, m)[2, 1])
 
     bivA <- mxEval(top.A / top.Vtot, m)[2, 1]
     bivA_SD <- try_or_NA(mxSE(top.A / top.Vtot, m)[2, 1])
@@ -258,17 +269,14 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
     h2_Y <- mxEval(top.A / top.Vtot, m)[2, 2]
     h2_Y_SD <- try_or_NA(mxSE(top.A / top.Vtot, m)[2, 2])
 
-    tibble(Param = c("bivA", "bivC", "bivE", "rg", "rc", "re", "prop_unique_A_Y", "prop_unique_C_Y", "prop_unique_E_Y", "A1", "C1", "E1", "A2", "C2", "E2", "h2_X", "h2_Y"),
-           Value = c(bivA, bivC, bivE, rg, rc, re, prop_unique_A_Y, prop_unique_C_Y, prop_unique_E_Y, A1, C1, E1, A2, C2, E2, h2_X, h2_Y),
-           SD = c(bivA_SD, bivC_SD, bivE_SD, rg_SD, rc_SD, re_SD, prop_unique_A_Y_SD, prop_unique_C_Y_SD, prop_unique_E_Y_SD, A1_SD, C1_SD, E1_SD, A2_SD, C2_SD, E2_SD, h2_X_SD, h2_Y_SD),
+    tibble(Param = c("cov", "covA", "covC", "covE", "bivA", "bivC", "bivE", "rg", "rc", "re", "prop_unique_A_Y", "prop_unique_C_Y", "prop_unique_E_Y", "A1", "C1", "E1", "A2", "C2", "E2", "h2_X", "h2_Y"),
+           Value = c(cov, covA, covC, covE, bivA, bivC, bivE, rg, rc, re, prop_unique_A_Y, prop_unique_C_Y, prop_unique_E_Y, A1, C1, E1, A2, C2, E2, h2_X, h2_Y),
+           SD = c(cov_SD, covA_SD, covC_SD, covE_SD, bivA_SD, bivC_SD, bivE_SD, rg_SD, rc_SD, re_SD, prop_unique_A_Y_SD, prop_unique_C_Y_SD, prop_unique_E_Y_SD, A1_SD, C1_SD, E1_SD, A2_SD, C2_SD, E2_SD, h2_X_SD, h2_Y_SD),
            model = m$name)
 
-    }
+  }
+
     # Covariance decomposition
-
-
-
-
 
   map_dfr(x[!names(x) %in% c("traitX", "traitY")], extract_from_model) |> mutate(TraitX = x$TraitX, TraitY = x$TraitY)
 

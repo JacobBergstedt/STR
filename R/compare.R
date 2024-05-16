@@ -62,9 +62,9 @@ compare.ACE.uni <- function(x, ...) {
     map(mxCompare) |>
     map_dfr(as_tibble)
 
-  out <- bind_rows(compare_internal(x$ACE, x$AE),
-                   compare_internal(x$ACE, x$CE)) |>
-    filter(!is.na(comparison))
+  out <- bind_rows(compare_internal(x$ACE, x$AE), compare_internal(x$ACE, x$CE))
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
@@ -73,16 +73,13 @@ compare.ACE.uni <- function(x, ...) {
 }
 
 
-
 #' @export
 compare.ADE.uni <- function(x, ...) {
 
   bind_rows(compare_internal(x$ADE, x$AE),
             compare_internal(x$ADE, x$DE))
 
-
 }
-
 
 
 #' @export
@@ -103,8 +100,9 @@ compare.ACE.5group <- function(x, ...) {
                    compare_internal(x$ACEq, x$AEq),
                    compare_internal(x$ACEq, x$CEq),
                    compare_internal(x$ACE, x$AE),
-                   compare_internal(x$ACE, x$CE)) |>
-    filter(!is.na(comparison))
+                   compare_internal(x$ACE, x$CE))
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
@@ -165,8 +163,9 @@ compare.saturated.binary <- function(x) {
     as_tibble()
 
   out <- bind_rows(out1, out2) %>%
-    as_tibble() %>%
-    filter(!is.na(comparison))
+    as_tibble()
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
@@ -194,8 +193,9 @@ compare.saturated.num <- function(x) {
     as_tibble()
 
   out <- bind_rows(out1, out2, out3) %>%
-    as_tibble() %>%
-    filter(!is.na(comparison))
+    as_tibble()
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) %>%
@@ -229,8 +229,9 @@ compare.saturated.5group.binary <- function(x) {
     as_tibble()
 
   out <- bind_rows(out1, out2, out3, out4) %>%
-    as_tibble() %>%
-    filter(!is.na(comparison))
+    as_tibble()
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
@@ -262,8 +263,9 @@ compare.saturated.5group.num <- function(x) {
   out5 <- mxCompare(x$equal_mean_var_order_zyg_ss_os, x$equal_mean_var_order_zyg_ss_os_sex) %>%
     as_tibble()
 
-  out <- bind_rows(out1, out2, out3, out4, out5) %>%
-    filter(!is.na(comparison))
+  out <- bind_rows(out1, out2, out3, out4, out5)
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
@@ -271,8 +273,6 @@ compare.saturated.5group.num <- function(x) {
 
 
 }
-
-
 
 
 #' @export
@@ -293,8 +293,9 @@ compare.ACE.biv.chol <- function(x, ...) {
   out8 <- mxCompare(x$Y_no_A, x$CE) |> as_tibble()
 
   out <- bind_rows(out1, out2, out3, out4, out5, out6) %>%
-    select(-(fit:SBchisq)) %>%
-    filter(!is.na(comparison))
+    select(-(fit:SBchisq))
+
+  if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
   bind_rows(out_init, out) |>
     select(-(fit:SBchisq)) |>
