@@ -283,9 +283,19 @@ compare.saturated.5group.num <- function(x) {
 #' @export
 compare.ACE.biv.chol <- function(x, ...) {
 
+
   out_init <- x[!names(x) %in% c("traitX", "traitY")] |>
     map(mxCompare) |>
     map_dfr(as_tibble)
+
+
+  out_status <-  x[!names(x) %in% c("traitX", "traitY")] |>
+    map(~ grepl("OK", summary(.)$statusCode)) |>
+    map_chr(~ if_else(., "OK", "FAILED"))
+
+
+  out_init$Status <- out_status
+
 
   out1 <- mxCompare(x$ACE, x$X_no_C) |> as_tibble()
   out2 <- mxCompare(x$ACE, x$Y_no_C) |> as_tibble()
@@ -298,7 +308,8 @@ compare.ACE.biv.chol <- function(x, ...) {
   out8 <- mxCompare(x$Y_no_A, x$CE) |> as_tibble()
 
   out <- bind_rows(out1, out2, out3, out4, out5, out6) %>%
-    select(-(fit:SBchisq))
+    select(-(fit:SBchisq)) |>
+    mutate(Status = NA)
 
   if (!is_empty(out)) out <- filter(out, !is.na(comparison))
 
