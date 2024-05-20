@@ -440,7 +440,7 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, response_type, extra_tries = 10
 
 
 #' @export
-fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", extra_tries = 10, ...) {
+fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", extra_tries = 10, rel_eps = 0.005, ...) {
 
 
   any_binary_trait <- (x$response_typeX == "binary" | x$response_typeY == "binary")
@@ -457,6 +457,8 @@ fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", ex
     addCI = FALSE,
     autoRun = FALSE
   )
+
+  ACE <- mxOption(ACE, 'mvnRelEps', rel_eps)
 
   X_no_C <- umxModify(ACE, update = c("c_r2c1", "c_r1c1"),  name = "X_no_C", autoRun = FALSE)
   Y_no_C <- umxModify(ACE, update = c("c_r2c1", "c_r2c2"), name = "Y_no_C", autoRun = FALSE)
