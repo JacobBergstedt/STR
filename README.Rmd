@@ -43,8 +43,8 @@ library(tidyverse)
 # Sim data ----------------------------------------------------------------
 
 ### Choose parameter values, as "Cholesky" (axx^2+cxx^2 must be less than 1)
-a11 <- .6; a12 <- .2; a22 <-.5;
-c11 <- .5; c12 <- 0.2; c22 <- 0.6;
+a11 <- .8; a12 <- .2; a22 <-.6;
+c11 <- .1; c12 <- 0; c22 <- .05;
 e11 <- sqrt(1-a11^2-c11^2); e12 <- .35; e22 <- sqrt(1-a22^2-c22^2-a12^2-c12^2-e12^2)
 
 ### The model matrices, using the path coefficients, which we later are going to fit
@@ -62,8 +62,8 @@ aa%*%t(aa)+cc%*%t(cc)
 0.5*aa%*%t(aa)+cc%*%t(cc)
 
 ### Number of twin pairs
-nMZ <- 5000
-nDZ <- 6000
+nMZ <- 10000
+nDZ <- 12000
 
 ### Seed
 set.seed(9876)
@@ -93,12 +93,12 @@ byDZ <- data.frame(BY1 = round(runif(nDZ,0,1),1), BY2 = 0 )
 byDZ$BY2 <- byDZ$BY1
 byMZ[1:10,]
 
-### Note: Birth year is the samer across twins, but coded so it's allowed to be
+### Note: Birth year is the same across twins, but coded so it's allowed to be
 ###       different below, to allow for other variables.
 
 ### Chose threshold for variable 1 and variable 2
-thr1 <- 1
-thr2 <- 1.6
+thr1 <- 0.8
+thr2 <- 1.2
 
 ### Chose regression coefficients for S on X and Y
 betaX <- 0
@@ -168,7 +168,6 @@ twinData <- bind_rows(datMZ1, datMZ2, datDZ) |>
          Y = factor(Y, levels = c(0, 1)))
 
 
-twinData
 
 # -------------------------------------------------------------------------
 
@@ -177,14 +176,19 @@ twinData
 prep <- prep_bivariate_data_non_expand(db = twinData,
                                        traitX = "X",
                                        traitY = "Y",
-                                       covs = c("Female", "age"),
                                        response_typeX = "binary",
                                        response_typeY = "binary",
                                        same_sex = FALSE)
 
-m <- fit_ACE(prep, covs = "Female", extra_tries = 1)
+# m <- umxACE(selDVs = c("X", "Y"), selCovs = c("Birth_year_first", "Birth_year_second"), sep = "", dzData = prep$DZ, mzData = prep$MZ, tryHard = "yes")
+# mv1 <- umxACEv(selDVs = c("X", "Y"), selCovs = c("age"), sep = "", dzData = prep$DZ, mzData = prep$MZ, tryHard = "yes")
 
-get_estimates(m)
+
+m <- fit_ACE(prep, extra_tries = 1)
+
+p <- get_estimates(m)
+p
+
 
 
 ```
