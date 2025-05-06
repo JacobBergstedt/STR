@@ -264,7 +264,7 @@ prep_5groups <- function(prep) {
 }
 
 #' @export
-prep_bivariate_data_non_expand <- function(db, traitX, traitY, covs = NULL, response_typeX, response_typeY, same_sex = TRUE) {
+prep_bivariate_data <- function(db, traitX, traitY, covs = NULL, response_typeX, response_typeY, same_sex = TRUE) {
 
   if (!is_null(covs)) {
     covs_in_twin_frame <- map(covs, ~ paste0(., c(1, 2))) %>% unlist()
