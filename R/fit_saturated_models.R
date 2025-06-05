@@ -688,7 +688,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 }
 
 #' @export
-fit_saturated.prep.biv <- function(x, covs, extra_tries = 10, ...) {
+fit_saturated.prep.biv <- function(x, extra_tries = 10, ...) {
 
   # Select Variables for Analysis
   vars      <- c("X", "Y")            # list of variables names
