@@ -743,7 +743,7 @@ fit_saturated.prep.biv <- function(x, covs, extra_tries = 10, ...) {
   model  <- mxModel( "twoSATb", modelMZ, modelDZ, multi, ciCor, ciThre)
   fit <- mxTryHardOrdinal(model, extraTries = extra_tries)
 
-  out$Saturated <- fit
+  out <- list(Saturated = fit)
   class(out) <- "saturated.biv"
   out
 
