@@ -1,4 +1,19 @@
 
+
+labLower  <- function(lab,nv) { paste(lab,rev(nv+1-sequence(1:nv)),rep(1:nv,nv:1),sep="") }
+labSdiag  <- function(lab,nv) { paste(lab,rev(nv+1-sequence(1:(nv-1))),rep(1:(nv-1),(nv-1):1),sep="") }
+labOdiag  <- function(lab,nv) { paste(lab,c(rev(nv+1-sequence(1:(nv-1))),rep(1:(nv-1),(nv-1):1)),c(rep(1:(nv-1),(nv-1):1),rev(nv+1-sequence(1:(nv-1)))),sep="") }
+labFullSq <- function(lab,nv) { paste(lab,1:nv,rep(1:nv,each=nv),sep="") }
+labDiag   <- function(lab,nv) { paste(lab,1:nv,1:nv,sep="") }
+labSymm   <- function(lab,nv) { paste(lab,rev(nv+1-sequence(1:nv)),rep(1:nv,nv:1),sep="") }
+labFull   <- function(lab,nr,nc) { paste(lab,1:nr,rep(1:nc,each=nr),sep="") }
+labFullR  <- function(lab,nr,nc) { paste(lab,rep(1:nr,each=nc),1:nc,sep="") }
+labVect   <- function(lab,nv) { paste(lab,1:nv, sep="") }
+labVars   <- function(lab,vars) { paste(lab,vars,sep="") }
+labTh     <- function(lab,vars,nth) { paste(paste("t",1:nth,lab,sep=""),rep(vars,each=nth),sep="") }
+
+
+
 #' @export
 fit_saturated <- function(x, ...) {
 
@@ -672,7 +687,68 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 
 }
 
+#' @export
+fit_saturated.prep.biv <- function(x, covs, extra_tries = 10, ...) {
 
+  # Select Variables for Analysis
+  vars      <- c("X", "Y")            # list of variables names
+  nv        <- 2                         # number of variables
+  ntv       <- nv * 2                      # number of total variables
+  selVars   <- paste(vars, c(rep(1, nv), rep(2, nv)), sep = "")
+
+
+  # Set Starting Values
+  svTh      <- c(1.1,1.5)                # start value for thresholds
+  svCor     <- .5                        # start value for correlations
+  lbCor     <- -0.99                     # lower bound for correlations
+  ubCor     <- 0.99                      # upper bound for correlations
+
+  # Create Labels
+  labThMZ   <- labVars("threMZ", selVars)
+  labThDZ   <- labVars("threDZ", selVars)
+  labThZ    <- labVars("threZ", selVars)
+  labCrMZ   <- labSdiag("corMZ", ntv)
+  labCrDZ   <- labSdiag("corDZ", ntv)
+  labCrZ    <- labSdiag("corZ", ntv)
+
+
+  # Create Algebra for expected Mean & Threshold Matrices
+  meanG     <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG" )
+  threMZ    <- mxMatrix(type = "Full", nrow = 1, ncol = ntv, free = TRUE, values = svTh, labels = labThMZ, name = "threMZ")
+  threDZ    <- mxMatrix(type = "Full", nrow = 1, ncol = ntv, free = TRUE, values = svTh, labels = labThDZ, name = "threDZ")
+
+  # Create Algebra for expected Correlation Matrices
+  corMZ     <- mxMatrix(type = "Stand", nrow = ntv, ncol = ntv, free = TRUE, values = svCor, lbound = lbCor, ubound = ubCor, labels = labCrMZ, name = "corMZ")
+  corDZ     <- mxMatrix(type = "Stand", nrow = ntv, ncol = ntv, free = TRUE, values = svCor, lbound = lbCor, ubound = ubCor, labels = labCrDZ, name = "corDZ")
+
+  # Create Data Objects for Multiple Groups
+  dataMZ <- mxData(observed = as.data.frame(x$MZ), type = "raw")
+  dataDZ <- mxData(observed = as.data.frame(x$DZ), type = "raw")
+
+  # Create Expectation Objects for Multiple Groups
+  expMZ     <- mxExpectationNormal(covariance="corMZ", means="meanG", dimnames=selVars, thresholds="threMZ")
+  expDZ     <- mxExpectationNormal(covariance="corDZ", means="meanG", dimnames=selVars, thresholds="threDZ")
+  funML     <- mxFitFunctionML()
+
+  # Create Model Objects for Multiple Groups
+  modelMZ   <- mxModel(meanG, corMZ, threMZ, dataMZ, expMZ, funML, name="MZ")
+  modelDZ   <- mxModel(meanG, corDZ, threDZ, dataDZ, expDZ, funML, name="DZ")
+  multi     <- mxFitFunctionMultigroup( c("MZ","DZ") )
+
+  # Create Confidence Interval Objects
+  ciCor     <- mxCI( c('MZ.corMZ','DZ.corDZ' ))
+  ciThre    <- mxCI( c('MZ.threMZ','DZ.threDZ' ))
+
+  # Build Saturated Model with Confidence Intervals
+  model  <- mxModel( "twoSATb", modelMZ, modelDZ, multi, ciCor, ciThre)
+  fit <- mxTryHardOrdinal(model, extraTries = extra_tries)
+
+  out$Saturated <- fit
+  class(out) <- "saturated.biv"
+  out
+
+
+}
 
 
 

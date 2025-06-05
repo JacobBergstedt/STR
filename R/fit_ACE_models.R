@@ -440,7 +440,7 @@ fit_ACE.prep.uni.5group.num <- function(x, covs, response_type, extra_tries = 10
 
 
 #' @export
-fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", extra_tries = 10, rel_eps = 0.005, ...) {
+fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", extra_tries = 10, rel_eps = 0.005, only_ACE = FALSE, ...) {
 
 
   any_binary_trait <- (x$response_typeX == "binary" | x$response_typeY == "binary")
@@ -470,37 +470,62 @@ fit_ACE.prep.biv <- function(x, covs = NULL, type = "FIML", solver = "NPSOL", ex
 
   CE <- umxModify(ACE, update = c("a_r1c1", "a_r2c1", "a_r2c2"), name = "CE", autoRun = FALSE)
 
-  if (any_binary_trait) {
+  if (only_ACE) {
 
-    ACE <- mxTryHardOrdinal(ACE, extraTries = extra_tries)
-    X_no_C <- mxTryHardOrdinal(X_no_C, extraTries = extra_tries)
-    Y_no_C <- mxTryHardOrdinal(Y_no_C, extraTries = extra_tries)
+    if (any_binary_trait) {
 
-    AE <- mxTryHardOrdinal(AE, extraTries = extra_tries)
-
-    X_no_A <- mxTryHardOrdinal(X_no_A, extraTries = extra_tries)
-    Y_no_A <- mxTryHardOrdinal(Y_no_A, extraTries = extra_tries)
-
-    CE <- mxTryHardOrdinal(CE, extraTries = extra_tries)
-
-  } else {
+      ACE <- mxTryHardOrdinal(ACE, extraTries = extra_tries)
 
 
-    ACE <- mxTryHard(ACE, exhaustive = TRUE, extraTries = extra_tries)
-    X_no_C <- mxTryHard(X_no_C, exhaustive = TRUE, extraTries = extra_tries)
-    Y_no_C <- mxTryHard(Y_no_C, exhaustive = TRUE,extraTries = extra_tries)
+    } else {
 
-    AE <- mxTryHard(AE, exhaustive = TRUE, extraTries = extra_tries)
+      ACE <- mxTryHard(ACE, exhaustive = TRUE, extraTries = extra_tries)
 
-    X_no_A <- mxTryHard(X_no_A, exhaustive = TRUE, extraTries = extra_tries)
-    Y_no_A <- mxTryHard(Y_no_A, exhaustive = TRUE, extraTries = extra_tries)
 
-    CE <- mxTryHard(CE, exhaustive = TRUE, extraTries = extra_tries)
+    }
 
+    X_no_C <- NULL
+    Y_no_C <- NULL
+    AE <- NULL
+    X_no_A <- NULL
+    Y_no_A <- NULL
+    CE <- NULL
 
 
   }
 
+  if (!only_ACE) {
+
+    if (any_binary_trait) {
+
+      X_no_C <- mxTryHardOrdinal(X_no_C, extraTries = extra_tries)
+      Y_no_C <- mxTryHardOrdinal(Y_no_C, extraTries = extra_tries)
+
+      AE <- mxTryHardOrdinal(AE, extraTries = extra_tries)
+
+      X_no_A <- mxTryHardOrdinal(X_no_A, extraTries = extra_tries)
+      Y_no_A <- mxTryHardOrdinal(Y_no_A, extraTries = extra_tries)
+
+      CE <- mxTryHardOrdinal(CE, extraTries = extra_tries)
+
+    } else {
+
+
+      X_no_C <- mxTryHard(X_no_C, exhaustive = TRUE, extraTries = extra_tries)
+      Y_no_C <- mxTryHard(Y_no_C, exhaustive = TRUE,extraTries = extra_tries)
+
+      AE <- mxTryHard(AE, exhaustive = TRUE, extraTries = extra_tries)
+
+      X_no_A <- mxTryHard(X_no_A, exhaustive = TRUE, extraTries = extra_tries)
+      Y_no_A <- mxTryHard(Y_no_A, exhaustive = TRUE, extraTries = extra_tries)
+
+      CE <- mxTryHard(CE, exhaustive = TRUE, extraTries = extra_tries)
+
+
+
+    }
+
+  }
 
   out <- list(ACE = ACE,
               X_no_C = X_no_C,

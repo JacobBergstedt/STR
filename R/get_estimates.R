@@ -222,28 +222,28 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
 
     # proportion unique additive genetic effect
     prop_unique_A_Y <- mxEval(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
-    prop_unique_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
+    prop_unique_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
 
     # proportion unique shared environmental effect
     prop_unique_C_Y <- mxEval(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
-    prop_unique_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
+    prop_unique_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
 
     # proportion unique random environmental effect
     prop_unique_E_Y <- mxEval(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
-    prop_unique_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
-
+    prop_unique_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
 
     # proportion shared additive genetic effect
-    prop_shared_A_Y <- mxEval(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
+    prop_shared_A_Y <- mxEval(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
     prop_shared_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
 
     # proportion shared shared environmental effect
-    prop_shared_C_Y <- mxEval(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
+    prop_shared_C_Y <- mxEval(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
     prop_shared_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
 
     # proportion shared random environmental effect
-    prop_shared_E_Y <- mxEval(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
+    prop_shared_E_Y <- mxEval(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
     prop_shared_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
+
 
     # Variance components
     A1 <- mxEval(top.A, m)[1, 1]
@@ -269,8 +269,8 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
     h2_Y <- mxEval(top.A / top.Vtot, m)[2, 2]
     h2_Y_SD <- try_or_NA(mxSE(top.A / top.Vtot, m)[2, 2])
 
-    tibble(Param = c("cov", "covA", "covC", "covE", "bivA", "bivC", "bivE", "rg", "rc", "re", "prop_unique_A_Y", "prop_unique_C_Y", "prop_unique_E_Y", "A1", "C1", "E1", "A2", "C2", "E2", "h2_X", "h2_Y"),
-           Value = c(cov, covA, covC, covE, bivA, bivC, bivE, rg, rc, re, prop_unique_A_Y, prop_unique_C_Y, prop_unique_E_Y, A1, C1, E1, A2, C2, E2, h2_X, h2_Y),
+    tibble(Param = c("cov", "covA", "covC", "covE", "bivA", "bivC", "bivE", "rg", "rc", "re", "prop_unique_A_Y", "prop_unique_C_Y", "prop_unique_E_Y", "prop_shared_A_Y", "prop_shared_C_Y", "prop_shared_E_Y", "A1", "C1", "E1", "A2", "C2", "E2", "h2_X", "h2_Y"),
+           Value = c(cov, covA, covC, covE, bivA, bivC, bivE, rg, rc, re, prop_unique_A_Y, prop_unique_C_Y, prop_unique_E_Y, prop_shared_A_Y, prop_shared_C_Y, prop_shared_E_Y, A1, C1, E1, A2, C2, E2, h2_X, h2_Y),
            SD = c(cov_SD, covA_SD, covC_SD, covE_SD, bivA_SD, bivC_SD, bivE_SD, rg_SD, rc_SD, re_SD, prop_unique_A_Y_SD, prop_unique_C_Y_SD, prop_unique_E_Y_SD, A1_SD, C1_SD, E1_SD, A2_SD, C2_SD, E2_SD, h2_X_SD, h2_Y_SD),
            model = m$name)
 
