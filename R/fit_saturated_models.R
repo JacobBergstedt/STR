@@ -688,7 +688,7 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 }
 
 #' @export
-fit_saturated.prep.biv <- function(x, extra_tries = 10, ...) {
+fit_saturated.prep.biv <- function(x, sex = NULL, extra_tries = 10, ...) {
 
   # Select Variables for Analysis
   vars      <- c("X", "Y")            # list of variables names
@@ -711,9 +711,29 @@ fit_saturated.prep.biv <- function(x, extra_tries = 10, ...) {
   labCrDZ   <- labSdiag("corDZ", ntv)
   labCrZ    <- labSdiag("corZ", ntv)
 
+  meanG     <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG")
 
-  # Create Algebra for expected Mean & Threshold Matrices
-  meanG     <- mxMatrix(type = "Zero", nrow = 1, ncol = ntv, name = "meanG" )
+  if (!is.null(sex)) {
+
+
+    sex1 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = paste0("data.", sex, "1"), name = "sex1")
+    sex2 <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = FALSE, labels = paste0("data.", sex, "2"), name = "sex2")
+
+    path_bX  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = 0, label = "betaX_sex", name = "bX_sex")
+    path_bY  <- mxMatrix(type = "Full", nrow = 1, ncol = 1, free = TRUE, values = 0, label = "betaY_sex", name = "bY_sex")
+
+    expMeanMZ <- mxAlgebra(expression = meanG + cbind(sex1 %*% bX_sex, sex1 %*% bY_sex, sex2 %*% bX_sex, sex2 %*% bY_sex), name = "expMeanMZ")
+    expMeanDZ <- mxAlgebra(expression = meanG + cbind(sex1 %*% bX_sex, sex1 %*% bY_sex, sex2 %*% bX_sex, sex2 %*% bY_sex), name = "expMeanDZ")
+
+  } else {
+
+
+
+    expMeanMZ <- mxAlgebra(expression = meanG, name = "expMeanMZ")
+    expMeanDZ <- mxAlgebra(expression = meanG, name = "expMeanDZ")
+
+  }
+
   threMZ    <- mxMatrix(type = "Full", nrow = 1, ncol = ntv, free = TRUE, values = svTh, labels = labThMZ, name = "threMZ")
   threDZ    <- mxMatrix(type = "Full", nrow = 1, ncol = ntv, free = TRUE, values = svTh, labels = labThDZ, name = "threDZ")
 
@@ -726,13 +746,16 @@ fit_saturated.prep.biv <- function(x, extra_tries = 10, ...) {
   dataDZ <- mxData(observed = as.data.frame(x$DZ), type = "raw")
 
   # Create Expectation Objects for Multiple Groups
-  expMZ     <- mxExpectationNormal(covariance="corMZ", means="meanG", dimnames=selVars, thresholds="threMZ")
-  expDZ     <- mxExpectationNormal(covariance="corDZ", means="meanG", dimnames=selVars, thresholds="threDZ")
+  expMZ     <- mxExpectationNormal(covariance="corMZ", means="expMeanMZ", dimnames=selVars, thresholds="threMZ")
+  expDZ     <- mxExpectationNormal(covariance="corDZ", means="expMeanDZ", dimnames=selVars, thresholds="threDZ")
   funML     <- mxFitFunctionML()
 
   # Create Model Objects for Multiple Groups
-  modelMZ   <- mxModel(meanG, corMZ, threMZ, dataMZ, expMZ, funML, name="MZ")
-  modelDZ   <- mxModel(meanG, corDZ, threDZ, dataDZ, expDZ, funML, name="DZ")
+  pars <- list(meanG, path_bX, path_bY)
+  defs <- list(sex1, sex2)
+
+  modelMZ   <- mxModel(pars, defs, meanG, expMeanMZ, corMZ, threMZ, dataMZ, expMZ, funML, name="MZ")
+  modelDZ   <- mxModel(pars, defs, meanG, expMeanDZ, corDZ, threDZ, dataDZ, expDZ, funML, name="DZ")
   multi     <- mxFitFunctionMultigroup( c("MZ","DZ") )
 
   # Create Confidence Interval Objects
