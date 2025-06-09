@@ -725,10 +725,13 @@ fit_saturated.prep.biv <- function(x, sex = NULL, extra_tries = 10, ...) {
     expMeanMZ <- mxAlgebra(expression = meanG + cbind(sex1 %*% bX_sex, sex1 %*% bY_sex, sex2 %*% bX_sex, sex2 %*% bY_sex), name = "expMeanMZ")
     expMeanDZ <- mxAlgebra(expression = meanG + cbind(sex1 %*% bX_sex, sex1 %*% bY_sex, sex2 %*% bX_sex, sex2 %*% bY_sex), name = "expMeanDZ")
 
+    pars <- list(meanG, path_bX, path_bY)
+    defs <- list(sex1, sex2)
+
   } else {
 
-
-
+    pars <- meanG
+    defs <- NULL
     expMeanMZ <- mxAlgebra(expression = meanG, name = "expMeanMZ")
     expMeanDZ <- mxAlgebra(expression = meanG, name = "expMeanDZ")
 
@@ -751,11 +754,8 @@ fit_saturated.prep.biv <- function(x, sex = NULL, extra_tries = 10, ...) {
   funML     <- mxFitFunctionML()
 
   # Create Model Objects for Multiple Groups
-  pars <- list(meanG, path_bX, path_bY)
-  defs <- list(sex1, sex2)
-
-  modelMZ   <- mxModel(pars, defs, meanG, expMeanMZ, corMZ, threMZ, dataMZ, expMZ, funML, name="MZ")
-  modelDZ   <- mxModel(pars, defs, meanG, expMeanDZ, corDZ, threDZ, dataDZ, expDZ, funML, name="DZ")
+  modelMZ   <- mxModel(pars, defs, expMeanMZ, corMZ, threMZ, dataMZ, expMZ, funML, name="MZ")
+  modelDZ   <- mxModel(pars, defs, expMeanDZ, corDZ, threDZ, dataDZ, expDZ, funML, name="DZ")
   multi     <- mxFitFunctionMultigroup( c("MZ","DZ") )
 
   # Create Confidence Interval Objects
