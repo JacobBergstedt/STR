@@ -690,7 +690,6 @@ fit_saturated.prep.uni.5group.num <- function(x, covs, extra_tries = 10, ...) {
 #' @export
 fit_saturated.prep.biv <- function(x, sex = NULL, extra_tries = 10, rel_eps = 0.005, ...) {
 
-  browser()
 
   # Select Variables for Analysis
   vars      <- c("X", "Y")            # list of variables names
