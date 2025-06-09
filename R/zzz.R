@@ -3,6 +3,6 @@
 .onLoad <- function(libname, pkgname) {
   # something to run
 
-  mxOption(model = NULL, "Default optimizer", "NPSOL")
+  OpenMx::mxOption(model = NULL, "Default optimizer", "NPSOL")
 
 }
