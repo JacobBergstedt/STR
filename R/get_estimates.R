@@ -109,6 +109,7 @@ get_estimates.ACE.uni <- function(x, ...) {
                      Constrained = x$constrained)
 
   out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
@@ -171,6 +172,7 @@ get_estimates.ADE.uni <- function(x, ...) {
 
 
   out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
@@ -271,14 +273,15 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
 
     tibble(Param = c("cov", "covA", "covC", "covE", "bivA", "bivC", "bivE", "rg", "rc", "re", "prop_unique_A_Y", "prop_unique_C_Y", "prop_unique_E_Y", "prop_shared_A_Y", "prop_shared_C_Y", "prop_shared_E_Y", "A1", "C1", "E1", "A2", "C2", "E2", "h2_X", "h2_Y"),
            Value = c(cov, covA, covC, covE, bivA, bivC, bivE, rg, rc, re, prop_unique_A_Y, prop_unique_C_Y, prop_unique_E_Y, prop_shared_A_Y, prop_shared_C_Y, prop_shared_E_Y, A1, C1, E1, A2, C2, E2, h2_X, h2_Y),
-           SD = c(cov_SD, covA_SD, covC_SD, covE_SD, bivA_SD, bivC_SD, bivE_SD, rg_SD, rc_SD, re_SD, prop_unique_A_Y_SD, prop_unique_C_Y_SD, prop_unique_E_Y_SD, A1_SD, C1_SD, E1_SD, A2_SD, C2_SD, E2_SD, h2_X_SD, h2_Y_SD),
+           SD = c(cov_SD, covA_SD, covC_SD, covE_SD, bivA_SD, bivC_SD, bivE_SD, rg_SD, rc_SD, re_SD, prop_unique_A_Y_SD, prop_unique_C_Y_SD, prop_unique_E_Y_SD, prop_shared_A_Y_SD, prop_shared_C_Y_SD, prop_shared_E_Y_SD, A1_SD, C1_SD, E1_SD, A2_SD, C2_SD, E2_SD, h2_X_SD, h2_Y_SD),
            model = m$name)
 
   }
 
-    # Covariance decomposition
-
-  map_dfr(x[!names(x) %in% c("traitX", "traitY")], extract_from_model) |> mutate(TraitX = x$TraitX, TraitY = x$TraitY)
+  x[!names(x) %in% c("traitX", "traitY")] |>
+    compact() |>
+    map_dfr(extract_from_model) |>
+    mutate(TraitX = x$TraitX, TraitY = x$TraitY)
 
 }
 
@@ -410,6 +413,7 @@ get_estimates.ACE.5group <- function(x, ...) {
                      Constrained = x$constrained)
 
   out <- x[!names(x) %in% c("response_type", "trait", "constrained")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
@@ -454,14 +458,11 @@ get_estimates.saturated.binary <- function(x, ...) {
   out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
 
   out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
   out
-
-
-
-
 
 
 
@@ -502,6 +503,7 @@ get_estimates.saturated.num <- function(x, ...) {
   out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
 
   out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
@@ -547,6 +549,7 @@ get_estimates.saturated.5group.num <- function(x, ...) {
   out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
 
   out <- x[!names(x) %in% c("response_type", "trait")] %>%
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
@@ -587,7 +590,8 @@ get_estimates.saturated.5group.binary <- function(x, ...) {
 
   out_info <- tibble(Trait = x$trait, Response_type = x$response_type)
 
-  out <- x[!names(x) %in% c("response_type", "trait")] %>%
+  out <- x[!names(x) %in% c("response_type", "trait")] |>
+    compact() |>
     map_dfr(extract_from_model)
 
   out <- bind_cols(out, out_info)
