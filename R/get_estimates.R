@@ -223,27 +223,27 @@ get_estimates.ACE.biv.chol <- function(x, ...) {
     re_SD <- try_or_NA(mxSE(cov2cor(top.E), m)[2, 1])
 
     # proportion unique additive genetic effect
-    prop_unique_A_Y <- mxEval(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
-    prop_unique_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
+    prop_unique_A_Y <- mxEval(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
+    prop_unique_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
 
     # proportion unique shared environmental effect
-    prop_unique_C_Y <- mxEval(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
-    prop_unique_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
+    prop_unique_C_Y <- mxEval(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
+    prop_unique_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
 
     # proportion unique random environmental effect
-    prop_unique_E_Y <- mxEval(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
-    prop_unique_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
+    prop_unique_E_Y <- mxEval(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
+    prop_unique_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
 
     # proportion shared additive genetic effect
-    prop_shared_A_Y <- mxEval(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
+    prop_shared_A_Y <- mxEval(a_r2c1 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)
     prop_shared_A_Y_SD <- try_or_NA(as.numeric(mxSE(a_r2c2 ^ 2 / (a_r2c1 ^ 2 + a_r2c2 ^ 2), m)))
 
     # proportion shared shared environmental effect
-    prop_shared_C_Y <- mxEval(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
+    prop_shared_C_Y <- mxEval(c_r2c1 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)
     prop_shared_C_Y_SD <- try_or_NA(as.numeric(mxSE(c_r2c2 ^ 2 / (c_r2c1 ^ 2 + c_r2c2 ^ 2), m)))
 
     # proportion shared random environmental effect
-    prop_shared_E_Y <- mxEval(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
+    prop_shared_E_Y <- mxEval(e_r2c1 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)
     prop_shared_E_Y_SD <- try_or_NA(as.numeric(mxSE(e_r2c2 ^ 2 / (e_r2c1 ^ 2 + e_r2c2 ^ 2), m)))
 
 
