@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "STR software for twin models in the Swedish Twin Registry"
+authors:
+  - family-names: Bergstedt
+    given-names: Jacob
+    orcid: https://orcid.org/1234-5678-9101-1121
+title: "STR"
+version: 0.0.1
+date-released: 2024-01-01
